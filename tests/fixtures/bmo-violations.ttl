@@ -1,9 +1,10 @@
-@prefix bmo:  <https://example.org/bmo/> .
-@prefix up:   <https://example.org/upper/> .
+@prefix bmo:  <https://w3id.org/black-mesa/bmo/> .
+@prefix up:   <https://w3id.org/black-mesa/upper/> .
 @prefix prov: <http://www.w3.org/ns/prov#> .
 @prefix owl:  <http://www.w3.org/2002/07/owl#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+@prefix dct:  <http://purl.org/dc/terms/> .
 
 # Deliberate v0.3 violations. Every one exists because a test below expects the
 # matching SHACL rule to reject it.
@@ -138,3 +139,28 @@ bmo:CrosswalkNoTarget a bmo:ReportingCrosswalk ;
     up:crosswalkFrom bmo:Confirmed ;
     bmo:targetScheme bmo:NPDNDiagnosticConfidenceScheme ;
     up:fidelity up:Exact .
+
+
+# A pilot profile with no pathogen taxon cannot exercise a pathosystem.
+bmo:IncompletePilot a bmo:PilotPathosystem ;
+    bmo:hostTaxon <http://purl.obolibrary.org/obo/NCBITaxon_4530> ;
+    bmo:scenarioRole bmo:OperationalPilot .
+
+# Draft legal interpretations must never disable the human-review gate.
+bmo:UnsafeDraftRule a bmo:ReportingRule ;
+    bmo:ruleIdentifier "FIXTURE-UNSAFE-DRAFT" ;
+    bmo:appliesInJurisdiction bmo:Arkansas ;
+    bmo:regulatoryAuthority bmo:FixtureAgent ;
+    dct:source <https://example.invalid/authoritative-source> ;
+    bmo:ruleReviewStatus bmo:DraftRequiresLegalRegulatoryReview ;
+    bmo:requiresHumanReview false ;
+    bmo:legalReviewNote "Fixture deliberately violates the Phase 1 human-review requirement." .
+
+# A draft without a review note hides the unresolved legal interpretation.
+bmo:DraftRuleNoReviewNote a bmo:ReportingRule ;
+    bmo:ruleIdentifier "FIXTURE-NO-REVIEW-NOTE" ;
+    bmo:appliesInJurisdiction bmo:Texas ;
+    bmo:regulatoryAuthority bmo:FixtureAgent ;
+    dct:source <https://example.invalid/authoritative-source> ;
+    bmo:ruleReviewStatus bmo:DraftRequiresLegalRegulatoryReview ;
+    bmo:requiresHumanReview true .

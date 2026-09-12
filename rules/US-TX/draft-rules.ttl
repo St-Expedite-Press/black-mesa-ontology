@@ -1,0 +1,20 @@
+@prefix rule: <https://w3id.org/black-mesa/rules/US-TX/> .
+@prefix auth: <https://w3id.org/black-mesa/authority/> .
+@prefix bmo:  <https://w3id.org/black-mesa/bmo/> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
+@prefix dct:  <http://purl.org/dc/terms/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+auth:US-TX-TDA a prov:Organization ;
+    rdfs:label "Texas Department of Agriculture"@en .
+
+rule:TX-PLANT-PEST-BASELINE-DRAFT a bmo:ReportingRule ;
+    rdfs:label "Texas plant-pest/quarantine rule intake — DRAFT"@en ;
+    bmo:ruleIdentifier "TX-PLANT-PEST-BASELINE-DRAFT" ;
+    bmo:appliesInJurisdiction bmo:Texas ;
+    bmo:regulatoryAuthority auth:US-TX-TDA ;
+    dct:source <https://texasagriculture.gov/Regulatory-Programs/Quarantines> ;
+    bmo:ruleReviewStatus bmo:DraftRequiresLegalRegulatoryReview ;
+    bmo:requiresHumanReview true ;
+    bmo:legalReviewNote "Verify the current Texas Department of Agriculture quarantine rule applicable to each target pest/pathogen, including regulated articles and areas, diagnostic/reporting trigger, notification recipient/deadline, movement restriction, rule citation, and effective dates before approval."@en ;
+    rdfs:comment "Non-operative intake record. No unverified legal trigger, deadline, or enforcement consequence is encoded. This record cannot authorize autonomous external notification."@en .

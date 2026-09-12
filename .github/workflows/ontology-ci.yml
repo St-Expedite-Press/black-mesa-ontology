@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - main
-      - v0.3-sensor-agnostic-evidence-model
+      - "v*"
     paths:
       - "schema/**"
       - "upper/**"
@@ -13,6 +13,9 @@ on:
       - "tools/**"
       - "src/**"
       - "examples/**"
+      - "reference/**"
+      - "rules/**"
+      - "LICENSE*"
       - ".github/workflows/ontology-ci.yml"
   pull_request:
     paths:
@@ -21,7 +24,11 @@ on:
       - "vendor/**"
       - "tests/**"
       - "tools/**"
+      - "src/**"
       - "examples/**"
+      - "reference/**"
+      - "rules/**"
+      - "LICENSE*"
       - ".github/workflows/ontology-ci.yml"
 
 jobs:
@@ -55,13 +62,17 @@ jobs:
           test -s /tmp/bmo-docs/schema-reference.md
           test -s /tmp/bmo-docs/class-diagram.md
 
-      - name: Parse worked examples with the schema
+      - name: Parse project RDF data
         run: |
           python - <<'PY'
           from pathlib import Path
           import rdflib
 
-          for path in sorted(Path("examples").glob("*.ttl")):
+          paths = []
+          paths.extend(Path("examples").glob("*.ttl"))
+          paths.extend(Path("reference").glob("*.ttl"))
+          paths.extend(Path("rules").glob("**/*.ttl"))
+          for path in sorted(paths):
               g = rdflib.Graph()
               g.parse(path, format="turtle")
               print(f"{path}: {len(g)} triples")

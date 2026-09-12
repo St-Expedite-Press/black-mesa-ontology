@@ -1,3 +1,5 @@
+> **Superseded by v0.4.** This document remains the design history for the sensor-agnostic evidence/custody refactor. The current release adds persistent identifiers, explicit licensing, four pilot pathosystem profiles, and a five-state draft regulatory-rule registry. See [detection-ontology-v0.4.md](detection-ontology-v0.4.md).
+
 ---
 title: The Black Mesa Detection Ontology v0.3
 subtitle: Sensor-agnostic surveillance, hypothesis management, defensible custody, diagnostic evidence, and reporting boundaries

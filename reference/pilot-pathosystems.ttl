@@ -1,0 +1,45 @@
+@prefix pilot: <https://w3id.org/black-mesa/reference/pilot/> .
+@prefix bmo:   <https://w3id.org/black-mesa/bmo/> .
+@prefix obo:   <http://purl.obolibrary.org/obo/> .
+@prefix dct:   <http://purl.org/dc/terms/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+
+# Initial Black Mesa pathosystem set.
+# External taxon IRIs are referenced directly; no local crop/pathogen taxonomy
+# is created.
+
+pilot:RICE-BLAST a bmo:PilotPathosystem ;
+    rdfs:label "Rice — rice blast"@en ;
+    bmo:hostTaxon obo:NCBITaxon_4530 ;
+    bmo:pathogenTaxon obo:NCBITaxon_318829 ;
+    bmo:scenarioRole bmo:OperationalPilot ;
+    dct:source <https://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?id=4530> ,
+               <https://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?id=318829> ;
+    rdfs:comment "Operational pilot pathosystem. Host: Oryza sativa. Pathogen: Pyricularia oryzae; taxonomic synonyms remain the responsibility of the external authority."@en .
+
+pilot:SOY-FROGEYE a bmo:PilotPathosystem ;
+    rdfs:label "Soybean — frogeye leaf spot"@en ;
+    bmo:hostTaxon obo:NCBITaxon_3847 ;
+    bmo:pathogenTaxon obo:NCBITaxon_438356 ;
+    bmo:scenarioRole bmo:OperationalPilot ;
+    dct:source <https://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?id=3847> ,
+               <https://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?id=438356> ;
+    rdfs:comment "Operational pilot pathosystem. Host: Glycine max. Pathogen: Cercospora sojina."@en .
+
+pilot:WHEAT-STRIPE-RUST a bmo:PilotPathosystem ;
+    rdfs:label "Bread wheat — stripe rust"@en ;
+    bmo:hostTaxon obo:NCBITaxon_4565 ;
+    bmo:pathogenTaxon obo:NCBITaxon_168172 ;
+    bmo:scenarioRole bmo:OperationalPilot ;
+    dct:source <https://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?id=4565> ,
+               <https://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?id=168172> ;
+    rdfs:comment "Operational pilot pathosystem. Host: Triticum aestivum. Pathogen: Puccinia striiformis f. sp. tritici."@en .
+
+pilot:WHEAT-KARNAL-BUNT-REGULATORY a bmo:PilotPathosystem ;
+    rdfs:label "Bread wheat — Karnal bunt regulatory stress test"@en ;
+    bmo:hostTaxon obo:NCBITaxon_4565 ;
+    bmo:pathogenTaxon obo:NCBITaxon_43049 ;
+    bmo:scenarioRole bmo:RegulatoryStressTest ;
+    dct:source <https://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?id=4565> ,
+               <https://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?id=43049> ;
+    rdfs:comment "Regulatory stress-test pathosystem. It exists to exercise the quarantine/reporting branch, not to claim that Black Mesa has selected Karnal bunt as its first sensor model target."@en .

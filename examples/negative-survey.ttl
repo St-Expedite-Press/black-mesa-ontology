@@ -1,5 +1,5 @@
-@prefix ex:   <https://example.org/black-mesa/example/> .
-@prefix bmo:  <https://example.org/bmo/> .
+@prefix ex:   <https://w3id.org/black-mesa/example/> .
+@prefix bmo:  <https://w3id.org/black-mesa/bmo/> .
 @prefix sosa: <http://www.w3.org/ns/sosa/> .
 
 # A survey with no anomaly is still a recorded survey. It MUST NOT be turned

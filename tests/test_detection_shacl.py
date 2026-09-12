@@ -30,6 +30,9 @@ EXPECTED_VIOLATIONS = {
     "TiledImagery": "GRAPH BOUNDARY VIOLATION",
     "SilentCrosswalk": "state fidelity",
     "CrosswalkNoTarget": "crosswalkTo",
+    "IncompletePilot": "canonical pathogen taxon",
+    "UnsafeDraftRule": "draft rule must require human review",
+    "DraftRuleNoReviewNote": "legal review note",
 }
 
 

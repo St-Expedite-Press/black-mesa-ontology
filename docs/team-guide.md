@@ -549,3 +549,45 @@ Before adding a new Black Mesa class, answer:
 5. What would break if we did not have it?
 
 If the answer is essentially "it might be useful later," do not add it to the core yet.
+
+
+## 29. Persistent identifiers
+
+Black Mesa terms now use `https://w3id.org/black-mesa/` rather than `example.org`.
+
+Why this matters: a class identifier such as `bmo:DiagnosticDetectionAssertion` can remain stable even if the GitHub repository, documentation site, or hosting infrastructure changes.
+
+The W3ID redirect still has to be registered externally. The ontology can validate offline before that registration, but production Linked Data clients should eventually be able to dereference the identifier.
+
+## 30. Initial pathosystem profiles
+
+The core ontology does not contain a crop/pathogen family tree. Instead, `reference/pilot-pathosystems.ttl` instantiates four deployment profiles using external NCBITaxon identifiers:
+
+- rice + rice blast;
+- soybean + frogeye leaf spot;
+- bread wheat + stripe rust;
+- bread wheat + Karnal bunt as a regulatory stress test.
+
+This is the preferred pattern for future pilots: add reference data before adding new schema.
+
+## 31. Draft regulatory rules
+
+A `ReportingRule` is a versioned record describing an external legal/regulatory rule as understood by the project.
+
+Every initial state rule is explicitly marked:
+
+`DRAFT — requires legal/regulatory review`
+
+That means it is **not** an operative legal rule inside Black Mesa.
+
+Draft records must retain human review. They cannot authorize autonomous regulator notification, quarantine, destruction, or movement restriction.
+
+The rule registry exists so the team can fill in verified triggers, authorities, recipients, deadlines, effective dates, and movement restrictions without contaminating the scientific detection record.
+
+## 32. Licensing
+
+Ontology and semantic content are CC BY 4.0.
+
+Software and executable tooling are Apache-2.0.
+
+External standards, state source documents, and vendored third-party artifacts remain under their own terms. See `LICENSE` and `NOTICE.md`.

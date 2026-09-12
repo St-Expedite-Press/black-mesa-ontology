@@ -1,0 +1,20 @@
+@prefix rule: <https://w3id.org/black-mesa/rules/US-AR/> .
+@prefix auth: <https://w3id.org/black-mesa/authority/> .
+@prefix bmo:  <https://w3id.org/black-mesa/bmo/> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
+@prefix dct:  <http://purl.org/dc/terms/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+auth:US-AR-ADA a prov:Organization ;
+    rdfs:label "Arkansas Department of Agriculture / State Plant Board"@en .
+
+rule:AR-PLANT-PEST-BASELINE-DRAFT a bmo:ReportingRule ;
+    rdfs:label "Arkansas plant-pest/quarantine rule intake — DRAFT"@en ;
+    bmo:ruleIdentifier "AR-PLANT-PEST-BASELINE-DRAFT" ;
+    bmo:appliesInJurisdiction bmo:Arkansas ;
+    bmo:regulatoryAuthority auth:US-AR-ADA ;
+    dct:source <https://www.agriculture.arkansas.gov/wp-content/uploads/2020/05/Circular_11_-_Regulations_on_Plant_Diseases_and_Pests_.pdf> ;
+    bmo:ruleReviewStatus bmo:DraftRequiresLegalRegulatoryReview ;
+    bmo:requiresHumanReview true ;
+    bmo:legalReviewNote "Verify the current controlling Arkansas plant-pest/quarantine authorities, regulated taxa and commodities, diagnostic/reporting triggers, notification recipient, deadlines, geographic restrictions, movement restrictions, and effective dates before approval."@en ;
+    rdfs:comment "Non-operative intake record. No unverified legal trigger, deadline, or enforcement consequence is encoded. This record cannot authorize autonomous external notification."@en .
