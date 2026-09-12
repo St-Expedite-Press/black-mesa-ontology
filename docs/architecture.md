@@ -392,3 +392,54 @@ Likely sequence:
 7. adaptive action selection based on information gain, cost, delay, and risk.
 
 The core evidence model should remain small enough that each added term has an operational reason to exist.
+
+
+## 14. Persistent identity and external reference data
+
+Black Mesa v0.4 uses the persistent identifier base `https://w3id.org/black-mesa/`.
+
+The ontology itself is `https://w3id.org/black-mesa/bmo`; local terms live beneath `/bmo/`.
+
+Host and pathogen identities are not copied into a Black Mesa taxonomy. The initial pilot profiles reference NCBITaxon IRIs directly.
+
+This keeps the core ontology about evidence and decisions while reference data answers the deployment question: which host/pathogen pair are we exercising?
+
+## 15. Initial pilot pathosystems
+
+~~~mermaid
+flowchart TB
+    P[PilotPathosystem]
+    P --> R[Rice / rice blast]
+    P --> S[Soybean / frogeye leaf spot]
+    P --> W[Bread wheat / stripe rust]
+    P --> K[Bread wheat / Karnal bunt]
+    R --> O[OperationalPilot]
+    S --> O
+    W --> O
+    K --> X[RegulatoryStressTest]
+~~~
+
+The Karnal bunt profile is deliberately different from the three operational pilots. Its primary purpose is to exercise the evidence-to-regulatory boundary, not to assert that it is the first sensor model Black Mesa should build.
+
+## 16. Jurisdictional rule registry
+
+State law and quarantine policy change independently of scientific evidence. v0.4 therefore represents state rules as versioned records rather than ontology classes.
+
+~~~mermaid
+flowchart LR
+    D[Scientific detection] --> E[Regulatory evaluation]
+    R[ReportingRule] --> E
+    J[Jurisdiction] --> R
+    A[Regulatory authority] --> R
+    S[Authoritative source] --> R
+    E --> H[Human review]
+    H -->|approved action| N[Notification / restriction / other action]
+~~~
+
+The initial Arkansas, Louisiana, Missouri, Oklahoma, and Texas records are intake scaffolds marked **DRAFT — requires legal/regulatory review**. They cite official state sources but intentionally do not encode unverified triggers, deadlines, or enforcement consequences.
+
+A draft rule cannot be treated as autonomous authority for external action.
+
+## 17. Licensing boundary
+
+Semantic content is CC BY 4.0; software/tooling is Apache-2.0. Third-party standards and vendored artifacts retain their own licensing terms. This split permits broad ontology reuse while giving executable code a conventional software license with Apache-2.0 terms.
