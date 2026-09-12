@@ -1,0 +1,398 @@
+@prefix up:   <https://example.org/upper/> .
+@prefix obo:  <http://purl.obolibrary.org/obo/> .
+@prefix owl:  <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix dct:  <http://purl.org/dc/terms/> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+@prefix sosa: <http://www.w3.org/ns/sosa/> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
+
+# ===========================================================================
+# SHARED UPPER MODULE
+#
+# A project-neutral mid-level ontology anchoring both projects' domain classes
+# to Basic Formal Ontology (BFO 2.0, ISO/IEC 21838-2) with the Information
+# Artifact Ontology (IAO) for information entities and Relation Ontology (RO)
+# relations.
+#
+# WHY BFO AND NOT SOMETHING ELSE
+# Both projects already cherry-pick terms from OBI, PATO, ENVO, Plant Ontology
+# and NCBITaxon. Every one of those is an OBO Foundry ontology built on BFO.
+# Choosing any other upper ontology would leave the imported terms sitting in
+# a foreign hierarchy, which is precisely the incoherence an upper ontology is
+# supposed to remove. BFO is also an ISO standard, so the commitment is
+# citable rather than idiosyncratic.
+#
+# WHY THIS MODULE EXISTS AT ALL
+# The two projects are deliberately kept apart and share no domain content.
+# They can nevertheless share a formal spine: a shared upper module is not
+# shared subject matter. NOTHING HERE MAY NAME EITHER PROJECT, its programme,
+# its funder, or its subject domain. Terms must read as equally natural in an
+# ecological and an agricultural-diagnostic setting, or they belong in a
+# project's own file rather than here.
+#
+# SOURCES (IRIs verified against the published ontologies, not recalled)
+#   BFO 2.0   vendor/bfo.owl   http://purl.obolibrary.org/obo/bfo.owl
+#   IAO                        http://purl.obolibrary.org/obo/iao.owl
+#   RO                         http://purl.obolibrary.org/obo/ro.owl
+# Only BFO is vendored, because only BFO is imported and therefore only BFO
+# contributes a hierarchy that reasoning can check. The handful of IAO classes
+# and RO relations used are re-declared below with their published IRIs and
+# their BFO parents, so the graph is self-contained without carrying 1.8 MB of
+# external ontology for terms that are referenced rather than reasoned over.
+# ===========================================================================
+
+up: a owl:Ontology ;
+    dct:title "Shared upper module"@en ;
+    owl:versionInfo "0.1" ;
+    owl:imports <http://purl.obolibrary.org/obo/bfo.owl> ;
+    rdfs:comment """Anchors domain classes to BFO 2.0. Every domain class in either project must reach BFO through this module: shapes enforce it, so a class cannot be added ad hoc without declaring what kind of thing it is."""@en .
+
+# ---------------------------------------------------------------------------
+# BFO terms used, labelled locally for readability.
+# The hierarchy itself comes from the imported bfo.owl; these are not
+# redefinitions, only local labels so Turtle stays legible.
+# ---------------------------------------------------------------------------
+
+obo:BFO_0000001 rdfs:label "entity"@en .
+obo:BFO_0000002 rdfs:label "continuant"@en .
+obo:BFO_0000003 rdfs:label "occurrent"@en .
+obo:BFO_0000004 rdfs:label "independent continuant"@en .
+obo:BFO_0000040 rdfs:label "material entity"@en .
+obo:BFO_0000030 rdfs:label "object"@en .
+obo:BFO_0000027 rdfs:label "object aggregate"@en .
+obo:BFO_0000141 rdfs:label "immaterial entity"@en .
+obo:BFO_0000029 rdfs:label "site"@en .
+obo:BFO_0000006 rdfs:label "spatial region"@en .
+obo:BFO_0000011 rdfs:label "spatiotemporal region"@en .
+obo:BFO_0000008 rdfs:label "temporal region"@en .
+obo:BFO_0000020 rdfs:label "specifically dependent continuant"@en .
+obo:BFO_0000019 rdfs:label "quality"@en .
+obo:BFO_0000017 rdfs:label "realizable entity"@en .
+obo:BFO_0000023 rdfs:label "role"@en .
+obo:BFO_0000016 rdfs:label "disposition"@en .
+obo:BFO_0000031 rdfs:label "generically dependent continuant"@en .
+obo:BFO_0000015 rdfs:label "process"@en .
+obo:BFO_0000144 rdfs:label "process profile"@en .
+obo:BFO_0000182 rdfs:label "history"@en .
+
+# IAO information artifacts.
+obo:IAO_0000030 a owl:Class ; rdfs:label "information content entity"@en ;
+    rdfs:subClassOf obo:BFO_0000031 .
+obo:IAO_0000027 a owl:Class ; rdfs:label "data entity"@en ;
+    rdfs:subClassOf obo:IAO_0000030 .
+obo:IAO_0000109 a owl:Class ; rdfs:label "measurement datum"@en ;
+    rdfs:subClassOf obo:IAO_0000027 .
+obo:IAO_0000033 a owl:Class ; rdfs:label "directive information entity"@en ;
+    rdfs:subClassOf obo:IAO_0000030 .
+obo:IAO_0000007 a owl:Class ; rdfs:label "action specification"@en ;
+    rdfs:subClassOf obo:IAO_0000033 .
+obo:IAO_0000005 a owl:Class ; rdfs:label "objective specification"@en ;
+    rdfs:subClassOf obo:IAO_0000033 .
+obo:IAO_0000310 a owl:Class ; rdfs:label "document"@en ;
+    rdfs:subClassOf obo:IAO_0000030 .
+
+# RO / BFO relations used across both projects.
+obo:BFO_0000050 a owl:ObjectProperty ; rdfs:label "part of"@en .
+obo:BFO_0000051 a owl:ObjectProperty ; rdfs:label "has part"@en .
+obo:BFO_0000066 a owl:ObjectProperty ; rdfs:label "occurs in"@en .
+obo:BFO_0000055 a owl:ObjectProperty ; rdfs:label "realizes"@en .
+obo:BFO_0000054 a owl:ObjectProperty ; rdfs:label "realized in"@en .
+obo:BFO_0000062 a owl:ObjectProperty ; rdfs:label "preceded by"@en .
+obo:BFO_0000063 a owl:ObjectProperty ; rdfs:label "precedes"@en .
+obo:RO_0000052  a owl:ObjectProperty ; rdfs:label "characteristic of"@en .
+obo:RO_0000053  a owl:ObjectProperty ; rdfs:label "has characteristic"@en .
+obo:RO_0000056  a owl:ObjectProperty ; rdfs:label "participates in"@en .
+obo:RO_0000057  a owl:ObjectProperty ; rdfs:label "has participant"@en .
+obo:RO_0000081  a owl:ObjectProperty ; rdfs:label "role of"@en .
+obo:RO_0002233  a owl:ObjectProperty ; rdfs:label "has input"@en .
+obo:RO_0002234  a owl:ObjectProperty ; rdfs:label "has output"@en .
+obo:RO_0002353  a owl:ObjectProperty ; rdfs:label "output of"@en .
+obo:RO_0001025  a owl:ObjectProperty ; rdfs:label "located in"@en .
+obo:RO_0001000  a owl:ObjectProperty ; rdfs:label "derives from"@en .
+obo:IAO_0000136 a owl:ObjectProperty ; rdfs:label "is about"@en .
+obo:IAO_0000219 a owl:ObjectProperty ; rdfs:label "denotes"@en .
+
+# ===========================================================================
+# 1. INFORMATION ARTIFACTS
+#
+# The largest family in both projects. A classification, a detection, a risk
+# category, a confidence score and a map label are all information: they are
+# about the world without being part of it, and they can be copied between
+# media without change of identity. In BFO that is a generically dependent
+# continuant, and IAO's information content entity is its standard refinement.
+#
+# Getting this right is what stops the recurring category error in both
+# domains - treating a claim about a thing as though it were a property of
+# the thing.
+# ===========================================================================
+
+up:InformationArtifact a owl:Class ;
+    rdfs:subClassOf obo:IAO_0000030 ;
+    rdfs:label "Information artifact"@en ;
+    rdfs:comment "Anything in either project that is about the world rather than part of it. Root of the information family; specialise rather than using directly."@en .
+
+up:Assertion a owl:Class ;
+    rdfs:subClassOf up:InformationArtifact ;
+    rdfs:label "Assertion"@en ;
+    rdfs:comment """A claim reached from evidence by some agent at some time, under some version of a rule set.
+
+The defining test: if two competent people could disagree about it, or if revising the producing rule should not silently rewrite history, it is an assertion rather than a property. Every assertion carries its evidence, its provenance, and its time."""@en .
+
+up:EvidenceItem a owl:Class ;
+    rdfs:subClassOf up:InformationArtifact ;
+    rdfs:label "Evidence item"@en ;
+    rdfs:comment "The bearing of an observation or derived datum on a candidate conclusion - supporting, contradicting, or discriminating. Evidence is itself information: the same measurement can be strong evidence for one hypothesis and none at all for another."@en .
+
+up:DerivedDatum a owl:Class ;
+    rdfs:subClassOf obo:IAO_0000027 ;
+    rdfs:label "Derived datum"@en ;
+    rdfs:comment "An interpretation computed from one or more measurements, kept separate from them so the interpretation can be revised without touching what was measured."@en .
+
+up:ConceptualUnit a owl:Class ;
+    rdfs:subClassOf up:InformationArtifact ;
+    rdfs:label "Conceptual unit"@en ;
+    rdfs:comment """A term in a classification scheme: an ecosystem type, a diagnostic category, a risk category.
+
+Modelled as information rather than as a universal because what the system holds is the CONCEPT as published in a scheme - with a label, a notation, a source, and a revision history - not the universal it denotes. The denotation is recorded with obo:IAO_0000219 (denotes). Conflating the two is what makes classification schemes impossible to version."""@en .
+
+up:ConfidenceAssessment a owl:Class ;
+    rdfs:subClassOf up:InformationArtifact ;
+    rdfs:label "Confidence assessment"@en ;
+    rdfs:comment "A multi-axis statement of how much weight an assertion can bear. Separate from the assertion so that the same claim can be reassessed without being restated."@en .
+
+up:SupportDescription a owl:Class ;
+    rdfs:subClassOf up:InformationArtifact ;
+    rdfs:label "Support description"@en ;
+    rdfs:comment """A record of the spatial footprint, resolution, positional uncertainty and temporal extent over which an observation holds.
+
+Note it is a DESCRIPTION of a spatiotemporal region, not the region itself. The region is an occurrent (obo:BFO_0000011); what the system stores is information about it, which can be wrong."""@en .
+
+up:RequirementSpecification a owl:Class ;
+    rdfs:subClassOf obo:IAO_0000007 ;
+    rdfs:label "Requirement specification"@en ;
+    rdfs:comment "A specification of an action to be performed - what must be observed or measured, to what accuracy, over what support, and why. A directive rather than a description, which is why it anchors to IAO's action specification."@en .
+
+up:ThresholdSpecification a owl:Class ;
+    rdfs:subClassOf obo:IAO_0000005 ;
+    rdfs:label "Threshold specification"@en ;
+    rdfs:comment "A specified boundary value at which a determination changes - a collapse threshold, a detection limit, a reporting cut-off. An objective specification: it states an endpoint against which something is judged, and it is chosen rather than discovered, so it must carry its justification."@en .
+
+up:CandidateSet a owl:Class ;
+    rdfs:subClassOf up:InformationArtifact ;
+    rdfs:label "Candidate set"@en ;
+    rdfs:comment "The live hypotheses under consideration, with their support. Retaining alternatives is a requirement in both projects, so the set is a first-class object rather than an implicit by-product."@en .
+
+up:EpistemicStatus a owl:Class ;
+    rdfs:subClassOf up:InformationArtifact ;
+    rdfs:label "Epistemic status"@en ;
+    rdfs:comment "The standing of a unit or assignment: established in a published source, proposed as a hypothesis, or a candidate awaiting governance. Declared structurally so nothing enters a graph without saying what it is."@en .
+
+up:ExternalAssignment a owl:Class ;
+    rdfs:subClassOf up:InformationArtifact ;
+    rdfs:label "External assignment"@en ;
+    rdfs:comment "What some pre-existing external source says about a location or entity - a map unit, a prior record, a legacy label. Information, and therefore evidence, never ground truth."@en .
+
+up:Crosswalk a owl:Class ;
+    rdfs:subClassOf up:InformationArtifact ;
+    rdfs:label "Crosswalk"@en ;
+    rdfs:comment "A directed, defeasible mapping between a local conceptual unit and an external one, carrying a fidelity and the evidence for it. Deliberately not owl:equivalentClass: a crosswalk can be partial, contested, or absent, and 'absent' is a finding."@en .
+
+# ===========================================================================
+# 2. PROCESSES
+#
+# Things that happen and have temporal parts. An observation is an ACT, not a
+# datum: it has participants, occurs somewhere, takes time, and produces
+# information as output. Separating the act from its result is what lets the
+# same act be re-interpreted later.
+#
+# ONE ANCESTOR, NOT FIVE SIBLINGS. Every process below is a RecordedProcess.
+# The alternative - each hanging directly off BFO process - makes observing,
+# sampling, analysing and transforming look like five unrelated categories,
+# when in fact they are the same kind of thing to this system: an act the graph
+# keeps a record of, which can therefore be dated, attributed, ordered against
+# the others, and cited as the provenance of a claim. Anything that needs to be
+# said about all of them at once - it happened at a time, an agent did it, it
+# belongs to a chain - is said once, here.
+# ===========================================================================
+
+up:RecordedProcess a owl:Class ;
+    rdfs:subClassOf obo:BFO_0000015 ;
+    rdfs:label "Recorded process"@en ;
+    rdfs:comment """An act the system keeps a record of: an observation, a sampling, an analysis, a disturbance, a transformation.
+
+The common ancestor of every process either project tracks. It exists so that the properties shared by all of them are declared once, and so that a query for 'everything that happened at this place' does not have to enumerate process types and silently miss the one added last month.
+
+Membership test: if the act needs to be dated, attributed, and placed in order against other acts, it belongs here. A process nobody records - wind, photosynthesis, erosion in general - does not, and adding it would make the class mean nothing."""@en .
+
+up:ObservationProcess a owl:Class ;
+    rdfs:subClassOf up:RecordedProcess ;
+    rdfs:label "Observation process"@en ;
+    rdfs:comment "An act of observing or measuring, carried out by an agent or instrument upon some entity, producing a measurement datum as output. Aligned with sosa:Observation, which is likewise an activity rather than a result."@en ;
+    rdfs:seeAlso sosa:Observation .
+
+up:SamplingProcess a owl:Class ;
+    rdfs:subClassOf up:RecordedProcess ;
+    rdfs:label "Sampling process"@en ;
+    rdfs:comment "An act of collecting material from a site, producing a specimen as output. Distinct from observation: it removes matter rather than only recording."@en .
+
+up:AnalysisProcess a owl:Class ;
+    rdfs:subClassOf up:RecordedProcess ;
+    rdfs:label "Analysis process"@en ;
+    rdfs:comment "An act performed on a specimen or datum that yields a determination - an assay, a laboratory analysis, a classifier run."@en .
+
+up:DisturbanceEvent a owl:Class ;
+    rdfs:subClassOf up:RecordedProcess ;
+    rdfs:label "Disturbance event"@en ;
+    rdfs:comment """An act of nature or of people that resets or perturbs a system without necessarily changing what kind of thing it is: a storm, a fire, a flood, a harvest, an outbreak.
+
+The contrast with TransformationEvent is the whole point of having both. A disturbance leaves the entity instantiating the same type in a different condition - a burnt pine woodland is still a pine woodland. A transformation leaves it instantiating a different type, or none. Recurrent disturbance is often the very process that MAINTAINS a type, so recording disturbances as damage would invert the ecology."""@en .
+
+up:TransformationEvent a owl:Class ;
+    rdfs:subClassOf up:RecordedProcess ;
+    rdfs:label "Transformation event"@en ;
+    rdfs:comment "A process that changes what a site or entity is, rather than merely its condition: conversion, construction, restoration, collapse. What makes a transformation different from a state change is that the entity afterwards may no longer instantiate the type it did before. See DisturbanceEvent for the case where only the condition changes."@en .
+
+up:ProvenanceChain a owl:Class ;
+    rdfs:subClassOf up:RecordedProcess ;
+    rdfs:label "Provenance chain"@en ;
+    rdfs:comment """The ordered whole made of the processes that produced a result, from first observation to final determination.
+
+A process aggregate rather than an information artifact: the chain IS the sequence of acts. What is recorded about it is separate, and may be incomplete."""@en .
+
+# ===========================================================================
+# 3. MATERIAL ENTITIES AND SITES
+#
+# The things in the world that the information is about. Both projects need
+# the same three distinctions: a bounded place, an aggregate occupying it,
+# and material removed from it.
+# ===========================================================================
+
+up:SurveyedSite a owl:Class ;
+    rdfs:subClassOf obo:BFO_0000029 ;
+    rdfs:label "Surveyed site"@en ;
+    rdfs:comment "A bounded place that observations are made of and assertions are made about - a field, a zone, a stand, a plot. A site in BFO is immaterial: it is the place, not what occupies it."@en .
+
+up:OccurrentAggregate a owl:Class ;
+    rdfs:subClassOf obo:BFO_0000027 ;
+    rdfs:label "Occurrent aggregate"@en ;
+    rdfs:comment """A material aggregate occupying a site over an interval - the actual organisms and material present, as opposed to the concept under which they are classified.
+
+The name is unfortunate in one respect: 'occurrent' here follows domain usage (an occurrence of a type at a place) and NOT the BFO sense of occurrent. It is a continuant. Domain ontologies should use their own clearer label."""@en .
+
+up:Specimen a owl:Class ;
+    rdfs:subClassOf obo:BFO_0000040 ;
+    rdfs:label "Specimen"@en ;
+    rdfs:comment "Material removed from a site for analysis. A material entity with its own identity and custody history, distinct both from the site it came from and from any datum produced about it."@en .
+
+# ===========================================================================
+# 4. QUALITIES AND ROLES
+#
+# How a thing currently is, and what a thing is currently serving as. The
+# distinction matters: a quality is borne whether or not anyone cares, a role
+# exists only relative to some context that assigns it.
+# ===========================================================================
+
+up:Condition a owl:Class ;
+    rdfs:subClassOf obo:BFO_0000019 ;
+    rdfs:label "Condition"@en ;
+    rdfs:comment """The condition of a real entity at a time - disturbed, recovering, suppressed, mature, degraded.
+
+A quality inhering in the entity, related with obo:RO_0000052 (characteristic of). RESERVED for actual entities. A claim about what an entity was or could be is an Assertion, never a Condition: that separation is what stops a hypothesis about the past becoming a property of the present."""@en .
+
+up:EvidentialRole a owl:Class ;
+    rdfs:subClassOf obo:BFO_0000023 ;
+    rdfs:label "Evidential role"@en ;
+    rdfs:comment """The role a conceptual unit plays within a particular assertion - serving as a reference condition, a prior, a comparator.
+
+A role rather than a class because the same unit plays different roles in different assertions. Modelling each role as a class would produce parallel hierarchies of the same concepts, which is the error this term exists to prevent."""@en .
+
+up:Capability a owl:Class ;
+    rdfs:subClassOf obo:BFO_0000016 ;
+    rdfs:label "Capability"@en ;
+    rdfs:comment "What an observer, instrument, or method is able to determine. A disposition: it exists whether or not it is exercised, and it is what makes a requirement satisfiable by one channel and not another."@en .
+
+# ===========================================================================
+# 5. CORE RELATIONS
+#
+# Declared here where no published relation fits exactly. Everything that can
+# reuse RO, BFO or IAO does so rather than minting a parallel term.
+# ===========================================================================
+
+up:assertedBy a owl:ObjectProperty ;
+    rdfs:label "asserted by"@en ;
+    rdfs:comment "The agent or process that produced this assertion."@en ;
+    rdfs:domain up:Assertion ; rdfs:range prov:Agent .
+
+up:supportedBy a owl:ObjectProperty ;
+    rdfs:label "supported by"@en ;
+    rdfs:comment "Evidence bearing in favour of this assertion."@en ;
+    rdfs:domain up:Assertion ; rdfs:range up:EvidenceItem .
+
+up:contradictedBy a owl:ObjectProperty ;
+    rdfs:label "contradicted by"@en ;
+    rdfs:comment "Evidence bearing against this assertion, retained rather than discarded. An assertion with no recorded contradiction is not thereby uncontradicted; it may simply never have been challenged."@en ;
+    rdfs:domain up:Assertion ; rdfs:range up:EvidenceItem .
+
+up:hasConfidence a owl:ObjectProperty ;
+    rdfs:label "has confidence"@en ;
+    rdfs:domain up:Assertion ; rdfs:range up:ConfidenceAssessment .
+
+up:RuleSetVersion a owl:Class ;
+    rdfs:subClassOf up:InformationArtifact ;
+    rdfs:label "Rule set version"@en ;
+    rdfs:comment "An identified version of the rules, thresholds or method by which assertions are produced. It exists as a class rather than a version string so that the rules in force can be described, superseded and cited, which a literal cannot be: reinterpreting an old assertion means retrieving the rules it was made under, not guessing at them."@en .
+
+up:generatedUnder a owl:ObjectProperty ;
+    rdfs:label "generated under"@en ;
+    rdfs:comment "The rule set or method version in force when the assertion was produced. Without it, a rule change makes every past assertion uninterpretable."@en ;
+    rdfs:domain up:Assertion ; rdfs:range up:RuleSetVersion .
+
+up:hasSupportDescription a owl:ObjectProperty ;
+    rdfs:label "has support description"@en ;
+    rdfs:domain obo:IAO_0000027 ; rdfs:range up:SupportDescription .
+
+up:epistemicStatus a owl:ObjectProperty ;
+    rdfs:label "epistemic status"@en ;
+    rdfs:domain up:InformationArtifact ; rdfs:range up:EpistemicStatus .
+
+up:recommendsNext a owl:ObjectProperty ;
+    rdfs:label "recommends next"@en ;
+    rdfs:comment "The requirement whose satisfaction would most reduce remaining uncertainty. What makes a system adaptive rather than merely descriptive."@en ;
+    rdfs:domain up:Assertion ; rdfs:range up:RequirementSpecification .
+
+up:discriminates a owl:ObjectProperty ;
+    rdfs:label "discriminates"@en ;
+    rdfs:comment "The candidates a requirement is intended to separate. A requirement that discriminates nothing is a fixed protocol step, not an adaptive request."@en ;
+    rdfs:domain up:RequirementSpecification ; rdfs:range up:ConceptualUnit .
+
+up:crosswalkFrom a owl:ObjectProperty ;
+    rdfs:label "crosswalk from"@en ; rdfs:domain up:Crosswalk ; rdfs:range up:ConceptualUnit .
+up:crosswalkTo a owl:ObjectProperty ;
+    rdfs:label "crosswalk to"@en ;
+    rdfs:comment "The external term this crosswalk maps to. The range is deliberately open: the target is an identifier in a foreign vocabulary, and constraining it to a locally declared class would mean restating that vocabulary here, which is the opposite of what a crosswalk is for."@en ;
+    rdfs:domain up:Crosswalk ; rdfs:range rdfs:Resource .
+up:fidelity a owl:ObjectProperty ;
+    rdfs:label "fidelity"@en ;
+    rdfs:comment "How well the mapping holds: exact, broader, narrower, partial, or none."@en ;
+    rdfs:domain up:Crosswalk ; rdfs:range up:MappingFidelity .
+
+up:MappingFidelity a owl:Class ;
+    rdfs:subClassOf up:InformationArtifact ;
+    rdfs:label "Mapping fidelity"@en ;
+    rdfs:comment "How completely a crosswalk entry preserves the meaning of the term it maps. An enumeration rather than a score, because the distinctions are kinds of mismatch and not degrees of one: the value that matters most is none, which records that a term has no counterpart and that mapping it to the nearest available label would lose the thing it was minted to express."@en .
+
+up:Exact    a up:MappingFidelity ; rdfs:label "exact"@en .
+up:Broader  a up:MappingFidelity ; rdfs:label "broader"@en .
+up:Narrower a up:MappingFidelity ; rdfs:label "narrower"@en .
+up:Partial  a up:MappingFidelity ; rdfs:label "partial"@en .
+up:NoMapping a up:MappingFidelity ; rdfs:label "none"@en ;
+    rdfs:comment "No defensible mapping exists. A finding to be reported, not a gap to be filled with the nearest available term."@en .
+
+up:Established a up:EpistemicStatus ; rdfs:label "established"@en ;
+    rdfs:comment "A published unit in an existing authoritative source."@en .
+up:Hypothesis a up:EpistemicStatus ; rdfs:label "hypothesis"@en ;
+    rdfs:comment "Proposed by this work, for testing. Never an endorsement by the body owning the scheme."@en .
+up:Candidate a up:EpistemicStatus ; rdfs:label "candidate"@en ;
+    rdfs:comment "A recurrent pattern that has met replication criteria but not passed governance review."@en .

@@ -1,0 +1,50 @@
+# Data analysis
+numpy
+pandas
+scipy
+matplotlib
+seaborn
+plotly
+scikit-learn
+jupyterlab
+ipykernel
+openpyxl
+pyarrow
+
+# Ontology development / knowledge graphs
+rdflib
+owlready2
+SPARQLWrapper
+networkx
+pyshacl
+
+# Web development
+fastapi
+uvicorn[standard]
+flask
+requests
+httpx
+beautifulsoup4
+jinja2
+pydantic
+
+# PDF / document processing & design
+pypdf
+pdfplumber
+pymupdf
+reportlab
+markdown
+pypandoc
+playwright
+
+# Ontology / graph visualization & checking
+pyvis
+graphviz
+ontospy
+owlrl
+
+# Dev tooling
+python-dotenv
+black
+ruff
+pytest

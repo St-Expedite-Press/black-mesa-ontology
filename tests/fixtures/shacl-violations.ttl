@@ -1,0 +1,139 @@
+@prefix up:   <https://example.org/upper/> .
+@prefix eios: <https://example.org/eios/> .
+@prefix get:  <https://example.org/get/> .
+@prefix rle:  <https://example.org/rle/> .
+@prefix bad:  <https://example.org/eios/bad/> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+# ===========================================================================
+# Deliberate violations. Every node here MUST be rejected by shapes.ttl.
+#
+# A constraint that has only ever seen clean data is untested, so this file
+# exists to make the constraints fire. tests/test_shacl.py loads it alongside
+# the real schema and asserts each violation is caught.
+#
+# This file is never loaded by any tool and must never be referenced from a
+# project's schema directory.
+# ===========================================================================
+
+bad:SomeEcotype a eios:BiogeographicEcotype ;
+    rdfs:label "A Level 4 biogeographic ecotype"@en ;
+    eios:dividesEFG get:T2-5 .
+
+# V1 - the central architectural violation: Level 5 nested under Level 4.
+bad:WronglyNestedL5 a eios:GlobalEcosystemType ;
+    rdfs:label "Wrongly nested Level 5 unit"@en ;
+    eios:getLevel 5 ;
+    eios:epistemicStatus eios:Hypothesis ;
+    rle:officialStatus rle:NE ;
+    eios:assignedToEFG get:T2-5 ;
+    skos:broader bad:SomeEcotype .
+
+# V2 - Level 5 unit with no Level 3 attachment at all.
+bad:UnattachedL5 a eios:GlobalEcosystemType ;
+    rdfs:label "Level 5 with no Level 3 attachment"@en ;
+    eios:getLevel 5 ;
+    eios:epistemicStatus eios:Hypothesis ;
+    rle:officialStatus rle:NE .
+
+# V3 - a risk category asserted of an occurrence rather than a type.
+bad:SomeOccurrence a eios:EcosystemOccurrence ;
+    rdfs:label "An occurrence wrongly carrying a Red List category"@en ;
+    rle:overallCategory rle:CR .
+
+# V4 - a proposed type declaring neither epistemic nor official status.
+bad:OverclaimingType a eios:GlobalEcosystemType ;
+    rdfs:label "Type with no epistemic or official status"@en ;
+    eios:getLevel 5 ;
+    eios:assignedToEFG get:T2-5 .
+
+# V5 - a Level 4 unit using the Level 5 bottom-up property.
+bad:EcotypeUsingL5Property a eios:BiogeographicEcotype ;
+    rdfs:label "Level 4 unit misusing the Level 5 attachment"@en ;
+    eios:dividesEFG get:T2-5 ;
+    eios:assignedToEFG get:T2-5 .
+
+# V6 - an observation requirement with no purpose and one method, which makes
+# it a fixed protocol step rather than an observer-neutral adaptive request.
+bad:PurposelessRequirement a eios:ObservationRequirement ;
+    rdfs:label "Requirement with no stated diagnostic purpose"@en ;
+    eios:targetProperty "some property" .
+
+# ===========================================================================
+# ORIGIN / STATE CONFLATION - the violations the two-axis design exists to
+# catch. Each of these is a mistake a careful person makes, which is why they
+# are worth constraining rather than trusting to review.
+# ===========================================================================
+
+# V7 - a type that never says whether it is natural or built. The commonest
+# case, and the reason the origin flag is mandatory rather than optional: a
+# missing value is indistinguishable from an unconsidered question.
+bad:OriginlessType a eios:GlobalEcosystemType ;
+    rdfs:label "Type with no declared origin"@en ;
+    eios:getLevel 5 ;
+    eios:epistemicStatus eios:Hypothesis ;
+    rle:officialStatus rle:NE ;
+    eios:assignedToEFG get:T2-5 .
+
+# V8 - origin asserted of an OCCURRENCE. Being built is not a condition a
+# patch of ground is in; it is a fact about the kind of thing it is.
+bad:OccurrenceWithOrigin a eios:EcosystemOccurrence ;
+    rdfs:label "Occurrence wrongly carrying an origin"@en ;
+    eios:anthropogenicOrigin eios:ConstructedOrigin .
+
+# V9 - an OriginKind used as a state. The conflation stated as plainly as it
+# can be: "this dune is in an anthropogenic condition".
+bad:OccurrenceWithOriginAsState a eios:EcosystemOccurrence ;
+    rdfs:label "Occurrence using an origin as its state"@en ;
+    eios:hasState eios:ConstructedOrigin .
+
+# V10 - collapse asserted with no threshold behind it. An impression in the
+# clothing of a measurement, and the easiest bad claim to make.
+bad:UnthresholdedCollapse a eios:CollapsedState ;
+    rdfs:label "Collapsed state with no threshold assessed against"@en .
+
+# V11 - a collapse description that does not say what type it describes the
+# collapse OF. Collapse is type-relative; a description without a type
+# supports no claim at all.
+bad:TypelessCollapseDescription a rle:CollapsedStateDescription ;
+    rdfs:label "Collapse description naming no type"@en .
+
+# V12 - a transformation that records that something changed while losing both
+# what it changed from and what it became.
+bad:DanglingTransformation a up:TransformationEvent ;
+    rdfs:label "Transformation with no antecedent and no result"@en .
+
+# V13 - THE CENTRAL VIOLATION. A working constructed ecosystem asserted to be
+# collapsed, against a collapse description belonging to the natural type it
+# replaced. What the author means is that the marsh is gone; what they have
+# written is that the revetment is collapsed. The graph must not accept it,
+# because accepting it makes the two claims indistinguishable forever after.
+bad:ConstructedType a eios:GlobalEcosystemType ;
+    rdfs:label "A constructed shoreline type"@en ;
+    eios:getLevel 5 ;
+    eios:epistemicStatus eios:Hypothesis ;
+    rle:officialStatus rle:NE ;
+    eios:assignedToEFG get:MT3-1 ;
+    eios:anthropogenicOrigin eios:ConstructedOrigin .
+
+bad:NaturalTypeReplaced a eios:GlobalEcosystemType ;
+    rdfs:label "The natural type it replaced"@en ;
+    eios:getLevel 5 ;
+    eios:epistemicStatus eios:Hypothesis ;
+    rle:officialStatus rle:NE ;
+    eios:assignedToEFG get:MFT1-3 ;
+    eios:anthropogenicOrigin eios:NaturalOrigin .
+
+bad:WrongTypeCollapseDescription a rle:CollapsedStateDescription ;
+    rdfs:label "Collapse of the natural type"@en ;
+    rle:describesCollapseOf bad:NaturalTypeReplaced .
+
+bad:BorrowedCollapse a eios:CollapsedState ;
+    rdfs:label "Collapse borrowed from another type"@en ;
+    rle:assessedAgainst bad:WrongTypeCollapseDescription .
+
+bad:ConflatedOccurrence a eios:EcosystemOccurrence ;
+    rdfs:label "Constructed occurrence asserted collapsed on the wrong type"@en ;
+    eios:instantiates bad:ConstructedType ;
+    eios:hasState bad:BorrowedCollapse .

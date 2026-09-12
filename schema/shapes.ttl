@@ -1,0 +1,145 @@
+@prefix sh:   <http://www.w3.org/ns/shacl#> .
+@prefix bmo:  <https://example.org/bmo/> .
+@prefix up:   <https://example.org/upper/> .
+@prefix obo:  <http://purl.obolibrary.org/obo/> .
+@prefix owl:  <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+
+# ===========================================================================
+# Constraints for the detection core.
+# Each encodes a decision argued in docs/detection-ontology-v0.2.md, and each
+# is exercised against a deliberate violation in tests/fixtures/.
+# ===========================================================================
+
+# --- Every class must say what kind of thing it is ------------------------
+#
+# THE CHECK REQUIRES THE IMPORT CLOSURE. It asks for an ancestor whose IRI is a
+# BFO class, which only exists in the graph once owl:imports has been followed
+# to vendor/bfo.owl. validate_ontology.py does that by default; running it with
+# --skip-imports will fail every class here, and that is the intended
+# behaviour. The check was previously satisfied by reaching any IRI under the
+# up: namespace, which meant it verified a naming convention: nothing confirmed
+# that the upper terms themselves reached BFO.
+
+bmo:UpperAnchorShape a sh:NodeShape ;
+    sh:targetClass owl:Class ;
+    sh:sparql [
+        sh:message "UNANCHORED CLASS: every domain class must reach BFO via the shared upper module (upper/upper-core.ttl). Declare what kind of thing it is - an information artifact, a process, a material entity, a site, a quality, or a role." ;
+        sh:prefixes bmo: ;
+        sh:select """
+            PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+            PREFIX owl:  <http://www.w3.org/2002/07/owl#>
+            SELECT $this WHERE {
+              $this a owl:Class .
+              FILTER(STRSTARTS(STR($this), "https://example.org/bmo/"))
+              FILTER NOT EXISTS { $this rdfs:subClassOf+ ?anchor .
+                                  FILTER(STRSTARTS(STR(?anchor), "http://purl.obolibrary.org/obo/BFO_")) }
+            }""" ] .
+
+# --- A detection is an assertion, and must carry what makes it one --------
+
+bmo:DetectionShape a sh:NodeShape ;
+    sh:targetClass bmo:Detection ;
+    sh:property [
+        sh:path bmo:concernsZone ; sh:minCount 1 ; sh:maxCount 1 ;
+        sh:message "A detection must concern exactly one zone. Asserting at field or farm level overstates what a point sample supports." ] ;
+    sh:property [
+        sh:path bmo:derivedFromResult ; sh:minCount 1 ;
+        sh:message "A detection must derive from at least one assay result. A detection with no result behind it is an opinion." ] ;
+    sh:property [
+        sh:path bmo:hasCustodyChain ; sh:minCount 1 ;
+        sh:message "A detection must carry a custody chain. A detection that cannot be resolved back to the flight, collection and assay that produced it is not evidence, and provenance cannot be retrofitted." ] ;
+    sh:property [
+        sh:path up:generatedUnder ; sh:minCount 1 ;
+        sh:message "A detection must record the rule set version in force when it was produced. Without it, a later rule change makes every past detection uninterpretable." ] ;
+    sh:property [
+        sh:path bmo:triggeredAlert ; sh:maxCount 1 ;
+        sh:message "A detection triggers at most one alert. Raising an alert is a separate decision from determining presence." ] .
+
+# --- The chain cardinalities -----------------------------------------------
+
+bmo:SpectralAnomalyShape a sh:NodeShape ;
+    sh:targetClass bmo:SpectralAnomaly ;
+    sh:property [
+        sh:path bmo:triggeredCollection ; sh:maxCount 1 ;
+        sh:message "An anomaly triggers at most one collection." ] ;
+    sh:property [
+        sh:path bmo:referencesImagery ; sh:minCount 1 ;
+        sh:message "An anomaly must reference the imagery it was found in, so the finding can be re-examined against the bytes that produced it." ] .
+
+bmo:AssayShape a sh:NodeShape ;
+    sh:targetClass bmo:Assay ;
+    sh:property [
+        sh:path bmo:assayed ; sh:minCount 1 ; sh:maxCount 1 ;
+        sh:message "An assay takes exactly one specimen as input." ] ;
+    sh:property [
+        sh:path bmo:producedResult ; sh:minCount 1 ; sh:maxCount 1 ;
+        sh:message "An assay produces exactly one result. A re-run is a different assay." ] .
+
+# --- THE GRAPH BOUNDARY ----------------------------------------------------
+# The decision with a 665x consequence. Imagery is referenced, never embedded.
+
+bmo:ImageryReferenceShape a sh:NodeShape ;
+    sh:targetClass bmo:ImageryReference ;
+    sh:property [
+        sh:path bmo:storageURI ; sh:minCount 1 ; sh:maxCount 1 ; sh:datatype xsd:anyURI ;
+        sh:message "An imagery reference must carry exactly one storage URI." ] ;
+    sh:property [
+        sh:path bmo:checksum ; sh:minCount 1 ;
+        sh:message "An imagery reference must carry a checksum, so it can be shown to resolve to the bytes that were analysed." ] .
+
+bmo:NoTiledImageryShape a sh:NodeShape ;
+    sh:targetClass bmo:ImageryReference ;
+    sh:sparql [
+        sh:message "GRAPH BOUNDARY VIOLATION: imagery must be referenced by URI and checksum, never tiled into the graph. Per-tile or per-pixel triples inflate the store by roughly 665x, and the failure is not gradual - query planning, indexing and backup economics all change character." ;
+        sh:prefixes bmo: ;
+        sh:select """
+            PREFIX bmo: <https://example.org/bmo/>
+            SELECT $this WHERE {
+              $this ?p ?o .
+              FILTER(STRSTARTS(STR(?p), "https://example.org/bmo/tile")
+                  || STRSTARTS(STR(?p), "https://example.org/bmo/pixel")
+                  || STRSTARTS(STR(?p), "https://example.org/bmo/band"))
+            }""" ] .
+
+# --- Confidence: the pre-symptomatic tier must not be flattened -----------
+
+bmo:ConfidenceAssessmentShape a sh:NodeShape ;
+    sh:targetClass bmo:ConfidenceAssessment ;
+    sh:property [
+        sh:path bmo:hasTier ; sh:minCount 1 ; sh:maxCount 1 ;
+        sh:message "A confidence assessment names exactly one tier." ] ;
+    sh:property [
+        sh:path bmo:calibratedProbability ;
+        sh:maxCount 1 ; sh:datatype xsd:decimal ;
+        sh:minInclusive 0.0 ; sh:maxInclusive 1.0 ;
+        sh:message "Calibrated probability must be a single value in [0,1], present only where a probabilistic model produced it. Its absence is meaningful and must not be imputed." ] ;
+    sh:property [
+        sh:path bmo:assayApplicability ; sh:minCount 1 ;
+        sh:message "Assay applicability must be recorded. An assay used outside its validation has no sensitivity figure that applies to the situation, and omitting this axis hides that." ] .
+
+bmo:ConfidenceTierShape a sh:NodeShape ;
+    sh:targetClass bmo:ConfidenceTier ;
+    sh:property [
+        sh:path bmo:presupposesSymptoms ; sh:minCount 1 ; sh:datatype xsd:boolean ;
+        sh:message "Every tier must declare whether it presupposes visible symptoms. This is what makes the gap in the adopted enumeration machine-readable rather than a matter of prose." ] .
+
+# --- Crosswalks must record what does not cross ---------------------------
+
+bmo:ReportingCrosswalkShape a sh:NodeShape ;
+    sh:targetClass bmo:ReportingCrosswalk ;
+    sh:property [
+        sh:path up:crosswalkFrom ; sh:minCount 1 ; sh:maxCount 1 ;
+        sh:message "A crosswalk must name the internal term it maps from." ] ;
+    sh:property [
+        sh:path up:fidelity ; sh:minCount 1 ; sh:maxCount 1 ;
+        sh:message "A crosswalk must state its fidelity: exact, broader, narrower, partial, or none. A mapping with unstated fidelity silently claims exactness it does not have." ] .
+
+# --- Observation requirements stay observer-neutral -----------------------
+
+bmo:ObservationRequirementShape a sh:NodeShape ;
+    sh:targetClass bmo:ObservationRequirement ;
+    sh:property [
+        sh:path up:discriminates ; sh:minCount 1 ;
+        sh:message "A requirement must state what it discriminates. A request with no diagnostic purpose is a fixed protocol step, not an adaptive one." ] .

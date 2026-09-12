@@ -1,0 +1,50 @@
+@prefix bmo:  <https://example.org/bmo/> .
+@prefix up:   <https://example.org/upper/> .
+@prefix bad:  <https://example.org/bmo/bad/> .
+@prefix owl:  <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+
+# Deliberate violations of the detection-core constraints. Every node here
+# MUST be rejected. Never referenced by the schema; loaded only by tests.
+
+# V1 - a class invented with no upper anchor at all.
+bmo:UnanchoredThing a owl:Class ;
+    rdfs:label "A class that never says what kind of thing it is"@en .
+
+# V2 - a detection with no custody chain and no rule version.
+bad:UntraceableDetection a bmo:Detection ;
+    rdfs:label "Detection with no provenance"@en ;
+    bmo:concernsZone bad:Zone1 ;
+    bmo:derivedFromResult bad:Result1 .
+
+# V3 - a detection concerning two zones.
+bad:OverbroadDetection a bmo:Detection ;
+    rdfs:label "Detection claiming two zones"@en ;
+    bmo:concernsZone bad:Zone1, bad:Zone2 ;
+    bmo:derivedFromResult bad:Result1 ;
+    bmo:hasCustodyChain bad:Chain1 ;
+    up:generatedUnder "RuleSet-1.2" .
+
+# V4 - imagery tiled into the graph: the 665x boundary violation.
+bad:TiledImagery a bmo:ImageryReference ;
+    rdfs:label "Imagery with per-tile triples"@en ;
+    bmo:storageURI "https://example.org/img/1"^^xsd:anyURI ;
+    bmo:checksum "abc123" ;
+    <https://example.org/bmo/tileRow> "14" ;
+    <https://example.org/bmo/pixelValue> "0.73" .
+
+# V5 - confidence with no assay applicability, hiding the axis that matters.
+bad:BlindConfidence a bmo:ConfidenceAssessment ;
+    rdfs:label "Confidence hiding applicability"@en ;
+    bmo:hasTier bmo:Confirmed ;
+    bmo:calibratedProbability "0.94"^^xsd:decimal .
+
+# V6 - a confidence tier that does not declare whether it presupposes symptoms.
+bad:SilentTier a bmo:ConfidenceTier ;
+    rdfs:label "Tier with no symptom declaration"@en .
+
+# V7 - a crosswalk asserting a mapping with no stated fidelity.
+bad:SilentCrosswalk a bmo:ReportingCrosswalk ;
+    rdfs:label "Crosswalk with unstated fidelity"@en ;
+    up:crosswalkFrom bmo:PreSymptomatic .
