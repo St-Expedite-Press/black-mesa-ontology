@@ -835,7 +835,7 @@ bmo:ruleReviewStatus a owl:ObjectProperty ;
 
 bmo:legalReviewNote a owl:DatatypeProperty ;
     rdfs:label "legal review note"@en ;
-    rdfs:domain bmo:ReportingRule ; rdfs:range xsd:string ;
+    rdfs:domain bmo:ReportingRule ; rdfs:range rdfs:Literal ;
     rdfs:comment "Human-readable note recording unresolved legal or regulatory interpretation questions. It is not a substitute for source citation or formal review status."@en .
 
 # ===========================================================================
