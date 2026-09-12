@@ -1,5 +1,5 @@
-@prefix bmo:  <https://example.org/bmo/> .
-@prefix up:   <https://example.org/upper/> .
+@prefix bmo:  <https://w3id.org/black-mesa/bmo/> .
+@prefix up:   <https://w3id.org/black-mesa/upper/> .
 @prefix dct:  <http://purl.org/dc/terms/> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
