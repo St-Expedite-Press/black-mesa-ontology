@@ -1,4 +1,4 @@
-@prefix up:   <https://example.org/upper/> .
+@prefix up:   <https://w3id.org/black-mesa/upper/> .
 @prefix obo:  <http://purl.obolibrary.org/obo/> .
 @prefix owl:  <http://www.w3.org/2002/07/owl#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
@@ -43,9 +43,12 @@
 # external ontology for terms that are referenced rather than reasoned over.
 # ===========================================================================
 
-up: a owl:Ontology ;
-    dct:title "Shared upper module"@en ;
-    owl:versionInfo "0.1" ;
+<https://w3id.org/black-mesa/upper> a owl:Ontology ;
+    dct:title "Black Mesa shared upper module"@en ;
+    dct:creator <https://github.com/St-Expedite-Press> ;
+    dct:license <https://creativecommons.org/licenses/by/4.0/> ;
+    owl:versionIRI <https://w3id.org/black-mesa/upper/releases/0.2.0> ;
+    owl:versionInfo "0.2.0" ;
     owl:imports <http://purl.obolibrary.org/obo/bfo.owl> ;
     rdfs:comment """Anchors domain classes to BFO 2.0. Every domain class in either project must reach BFO through this module: shapes enforce it, so a class cannot be added ad hoc without declaring what kind of thing it is."""@en .
 
