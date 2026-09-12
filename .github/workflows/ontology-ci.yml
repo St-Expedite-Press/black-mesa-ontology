@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - main
-      - v0.3-sensor-agnostic-evidence-model
+      - "v*"
     paths:
       - "schema/**"
       - "upper/**"
@@ -24,6 +24,7 @@ on:
       - "vendor/**"
       - "tests/**"
       - "tools/**"
+      - "src/**"
       - "examples/**"
       - "reference/**"
       - "rules/**"
