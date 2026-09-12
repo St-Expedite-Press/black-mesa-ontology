@@ -1,113 +1,176 @@
 # Black Mesa ontology — project instructions
 
-Workstream 4, Track C of the Black Mesa agricultural biosecurity platform: the Phase 1 conceptual schema for pre-symptomatic crop pathogen detection. Read this before doing anything in this directory.
+This repository contains the semantic/evidentiary core for the Black Mesa agricultural biosecurity platform.
 
-## What is being built
+Read `README.md`, `docs/team-guide.md`, and `docs/architecture.md` before changing the ontology.
 
-A **documented conceptual schema** — entities, relationships, controlled vocabularies, a confidence model, and NPDN/CAP crosswalks.
+## Product abstraction
 
-Explicitly **not**: a fully axiomatised OWL ontology, or an upper-ontology commitment. Those belong to a later phase and are out of scope.
+Black Mesa is **sensor-agnostic**.
 
-The platform detects crop pathogens before symptoms appear. A drone senses a spectral anomaly, a sampling arm collects material, a field assay confirms it, and the result feeds a geospatial early-warning network that growers and state agriculture departments act on. No data model for that chain exists, so it is being authored — narrowly, with most of the surrounding vocabulary imported rather than reinvented.
+The expected early platform includes drones, but the ontology must not require flight, spectral imagery, one sensor modality, one assay chemistry, one crop, one pathogen, or one jurisdiction.
 
-## Scope discipline
+Model the evidence chain:
 
-**The realistic failure mode is over-building, not under-building.** A beautifully axiomatised ontology delivered late is worth less to this team than a plainly documented schema delivered on time. Where a modelling choice is defensible either way, take the smaller one and record the larger as future work.
+~~~text
+survey
+-> observation
+-> anomaly
+-> sensor indication
+-> hypotheses
+-> next-best observation / sampling
+-> specimen + custody
+-> diagnostic procedure
+-> diagnostic result
+-> scientific detection
+-> regulatory/reporting evaluation
+-> alert
+~~~
 
-The deliverable must be reviewable by a domain scientist who does not read RDF, and checkable by a systems engineer against production constraints. Optimise for those two readers.
+Do not collapse adjacent stages.
 
-## Reuse before invention
+## Non-negotiable semantic rules
 
-Import wholesale by reference:
+1. Observation is not diagnosis.
+2. Anomaly is not pathogen presence.
+3. `SensorIndicationAssertion` MUST NOT use `assertsPathogen`.
+4. Diagnostic disposition is separate from evidence stage and confidence.
+5. A calibrated probability exists only when a calibrated model actually generated it.
+6. `NotDetected` is a diagnostic disposition, never a synonym for "no anomaly observed."
+7. Specimens and aliquots have persistent independent identities.
+8. Custody is represented as explicit events with agents and timestamps.
+9. Scientific detection is separate from regulatory determination and alert.
+10. Raw imagery/dense sensor arrays stay outside RDF and are referenced by URI + checksum.
+11. Crops/pathogens/sensors/methods should reuse external canonical identifiers where practical.
+12. Jurisdictions are data, not subclasses of detection.
 
-| Vocabulary | For |
-|---|---|
-| SOSA/SSN | the sensing layer |
-| QUDT | units |
-| GeoSPARQL | geometry |
-| Plant Ontology | plant part, growth stage |
-| NCBITaxon | pathogen and host identifiers — by reference only, never a full import |
+## Sensor agnosticism
 
-Cherry-pick specific terms: OBI (assay, specimen, detection limit), PATO (necrosis, chlorosis, wilting), Crop Ontology (severity scales).
+Use `bmo:SurveyActivity`, `bmo:SensorObservation`, and `bmo:ObservedAnomaly`.
 
-Adopt existing uncertainty vocabularies rather than authoring one — the NPDN four-level confidence enumeration (Confirmed / Suspected / Not Detected / Undetermined, tracked separately by genus and species) and the CAP severity/certainty/urgency triad for alerting.
+`bmo:Flight` is only a subtype of `SurveyActivity`.
 
-## Invent only what nobody has modelled
+`bmo:SpectralAnomaly` is only a subtype of `ObservedAnomaly`.
 
-- A **pre-symptomatic confidence tier**. The earliest existing bucket still assumes visible symptoms; the sensing stage precedes it.
-- **Sensor-to-sample chain of custody** — flight, anomaly, collection, container, assay result, as one traceable chain.
-- **Assay-specific semantics** for the confirmation chemistry.
+Use SOSA/SSN for sensor and platform semantics. Do not create local hardware taxonomies in the core.
 
-## The architecture constraint
+## Epistemic model
 
-**Raw spectral imagery must never enter the graph as per-pixel or per-tile triples.** It inflates the store by roughly two orders of magnitude and destroys query performance. Reference imagery by URI and checksum from object storage; keep the graph to entities, relationships, and provenance.
+Use three independent dimensions.
 
-## Layout
+### Evidence stage
 
-```
-sources/          converted programme documents (page anchors preserved)
-schema/           .ttl files - entities, provenance, crosswalks, shapes
-docs/             the paper, plus generated schema reference and diagrams
-reports/          rendered PDFs (gitignored build output)
-visualizations/   generated graph diagrams
-notebooks/ src/   analysis and reusable code
-```
+- SensorIndicationStage
+- FieldObservationStage
+- SpecimenEvidenceStage
+- DiagnosticEvidenceStage
+- ConfirmatoryEvidenceStage
 
-`sources/` holds the status report, workstream assignments, and the ontology lead onboarding brief. The onboarding brief is the working spec — read it first.
+### Diagnostic disposition
 
-## Register
+- Confirmed
+- Suspected
+- NotDetected
+- Undetermined
 
-Documents use `style: mesa` — this project's own register — with an explicit `kicker`. See `templates/MESA-GUIDE.md`. The project-neutral `report` register remains available for anything that should not carry the programme's identity. This project may name the programme; the sibling project may not, and the two must not share document text.
+### Confidence assessment
+
+- evidence strength
+- evidence completeness
+- model applicability
+- assay applicability
+- provenance quality
+- optional calibrated probability
+
+Do not reintroduce a single ranked "confidence tier."
+
+`bmo:ConfidenceTier` and `bmo:PreSymptomatic` exist only for v0.2 compatibility and are deprecated.
+
+## Chain of custody
+
+Chain of custody is a first-class Phase 1 requirement.
+
+Use `SampleCollection`, `TransferEvent`, `ReceiptEvent`, `StorageEvent`, `AliquotEvent`, `CustodyChain`, `CustodyRecord`, `Specimen`, and `Aliquot`.
+
+A legally consequential detection must be traceable to a `CustodyRecord`.
+
+Do not treat a custody chain as a free-text field.
+
+## Diagnostic model
+
+Use `DiagnosticProcedure` as the generic analysis process.
+
+`Assay` is a subtype for compatibility.
+
+Use `DiagnosticProcedureProfile` for validated pathogen, host, specimen matrix, sensitivity, specificity, detection limit, and validation source.
+
+A negative result does not automatically assert biological absence.
+
+## Reporting boundary
+
+Initial operating jurisdictions:
+
+- Arkansas
+- Louisiana
+- Missouri
+- Oklahoma
+- Texas
+
+Use `OperationalJurisdiction` instances and versioned `ReportingRule` objects.
+
+NPDN diagnostic dispositions and CAP alert certainty are different semantic dimensions.
+
+See `schema/reporting-crosswalks.ttl`.
 
 ## Upper ontology
 
-Every class reaches **BFO 2.0** (ISO/IEC 21838-2) through the shared module at `upper/upper-core.ttl`, and a SHACL constraint refuses any class that does not. Adding a class means answering one question — is it information, a process, matter, a place, a quality, or a role?
+Every local class must reach BFO 2.0 through `upper/upper-core.ttl`.
 
-The module is project-neutral by rule: it names neither project, and a test asserts that. A shared formal spine is not shared subject matter.
+BFO is used because the surrounding OBO ecosystem (OBI, PATO, ENVO, Plant Ontology, IAO, RO) is already BFO-aligned.
 
-BFO was chosen because the vocabularies both projects already cherry-pick from — OBI, PATO, ENVO, Plant Ontology — are OBO Foundry ontologies built on it. Any other upper ontology would leave those imports in a foreign hierarchy.
+Do not add a local class without deciding whether it is information, process, material, site, quality, or role.
 
-See `.claude/skills/ontology-engineering/references/upper-ontology.md`.
-All 20 classes in `bmo:` are anchored. `Detection`, `AssayResult`, `SpectralAnomaly` and `Alert` are information; `Flight`, `SampleCollection` and `Assay` are processes; `Specimen`, `Container` and `Host` are material; `Farm`, `Field` and `Zone` are sites.
+## Validation
 
-## Agents
+After every schema change:
 
-| Agent | Use for |
-|---|---|
-| `bm-ontology-architect` | Schema design — detection, provenance, confidence, chain of custody |
-| `bm-crosswalk-engineer` | NPDN/CAP and external reporting mappings |
-| `doc-producer` | Taking a document to a verified PDF |
-| `citation-auditor` | Verifying citations before release |
-| `graph-visualizer` | Rendering and checking schema diagrams |
+~~~bash
+python tools/validate_ontology.py \
+  schema/bmo-core.ttl \
+  schema/reporting-crosswalks.ttl \
+  --shapes schema/shapes.ttl
 
-## Skills
+python -m pytest tests/ -q
 
-`ontology-engineering`, `document-production`, `figure-design`, `data-visualization`, `citation-discipline`.
+python tools/schema_docs.py --schema schema --out docs
+~~~
 
-## Commands
+Every new SHACL rule needs a deliberate failing fixture proving that the rule fires.
 
-```bash
-# validate
-.venv/Scripts/python.exe tools/validate_ontology.py \
-    projects/black-mesa-ontology/schema/*.ttl \
-    --shapes projects/black-mesa-ontology/schema/shapes.ttl
+## Review audiences
 
-# visualise (include the upper module: the anchoring is the point of the diagram)
-.venv/Scripts/python.exe tools/visualize_ontology.py \
-    upper/upper-core.ttl projects/black-mesa-ontology/schema/*.ttl \
-    -o projects/black-mesa-ontology/visualizations/bmo-core
+Plant pathology/diagnostics should review method validity, dispositions, and evidentiary sufficiency.
 
-# regenerate the Markdown schema documentation (do this after any schema change)
-.venv/Scripts/python.exe tools/schema_docs.py \
-    --schema projects/black-mesa-ontology/schema \
-    --out projects/black-mesa-ontology/docs
+Sensor/ML should review whether the ontology assumes hardware or treats uncalibrated scores as probabilities.
 
-# lint and render
-.venv/Scripts/python.exe tools/lint_docs.py projects/black-mesa-ontology/docs/<doc>.md
-.venv/Scripts/python.exe tools/render_pdf.py projects/black-mesa-ontology/docs/<doc>.md \
-    --style mesa -o projects/black-mesa-ontology/reports/<doc>.pdf
-```
+Field operations should review specimen identity, custody events, handoffs, container/seal requirements, and realistic timestamps.
 
-## Review path
+Systems engineering should review graph boundaries, storage architecture, versioning, ingestion constraints, and provenance.
 
-Domain accuracy for pathogen and assay classes needs review by the microbiologist; production realism needs review by the systems engineer. Bring them class definitions and worked examples, not Turtle.
+Regulatory/reporting should review jurisdictional rules, external crosswalk fidelity, and the separation of science from policy.
+
+## Scope discipline
+
+The realistic ontology failure mode is still over-building.
+
+Do not add hundreds of crop/pathogen/sensor subclasses.
+
+The core should represent the evidence and decision structure; biological and hardware breadth should primarily enter through external identifiers and instance/reference data.
+
+Every new term must answer an operational competency question.
+
+## Public-repository publishing warning
+
+This repository has historically been assembled from a source monorepo. A future publish can overwrite direct edits made here.
+
+Any accepted change must therefore be ported into the source-of-truth publication workspace before the next automated publish.
