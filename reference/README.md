@@ -1,0 +1,1 @@
+Reference data that instantiate Black Mesa schema concepts without expanding the core ontology into a crop, pathogen, sensor, or jurisdiction taxonomy.\n
