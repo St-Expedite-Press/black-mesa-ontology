@@ -1,142 +1,226 @@
-<!-- GENERATED FILE - do not hand-edit. -->
-<!-- Rebuild: python tools/schema_docs.py --schema projects\black-mesa-ontology\schema --out projects\black-mesa-ontology\docs -->
+# Black Mesa v0.3 class diagrams
 
-# Class diagrams
+This page gives the review-oriented diagrams for the v0.3 ontology. The canonical declarations are in `schema/bmo-core.ttl`; `tools/schema_docs.py` can regenerate an exhaustive structural diagram after schema changes.
 
-Mermaid source, rendered natively by GitHub. Regenerated from the Turtle, so it cannot drift from the schema the way a checked-in image can.
+For the operational story, see [architecture.md](architecture.md).
 
-## Anchoring
+## 1. Evidence pipeline
 
-Every domain class by the kind of thing it is. This is the whole content of the upper-ontology commitment: adding a class means answering this question, and a SHACL constraint refuses one that does not.
+~~~mermaid
+flowchart LR
+    SA[SurveyActivity] --> SO[SensorObservation]
+    SO --> OA[ObservedAnomaly]
+    OA --> SI[SensorIndicationAssertion]
+    SI --> DH[DiagnosticHypothesis]
+    DH --> CS[DiagnosticCandidateSet]
+    CS --> OR[ObservationRequirement / SamplingRecommendation]
+    OR --> SC[SampleCollection]
+    SC --> SP[Specimen]
+    SP --> DP[DiagnosticProcedure]
+    DP --> DR[DiagnosticResult]
+    DR --> DD[DiagnosticDetectionAssertion]
+    DD --> RD[RegulatoryDetermination]
+    RD --> RP[ReportingDecision]
+    RP --> AL[Alert]
 
-```mermaid
-graph TD
-  K0["disposition"]
-  K0 --> K0_0["up:Capability"]
-  K1["information"]
-  K1 --> K1_0["bmo:Alert"]
-  K1 --> K1_1["bmo:AssayResult"]
-  K1 --> K1_2["bmo:ConfidenceAssessment"]
-  K1 --> K1_3["bmo:ConfidenceTier"]
-  K1 --> K1_4["bmo:Detection"]
-  K1 --> K1_5["bmo:DetectionLimit"]
-  K1 --> K1_6["bmo:ImageryReference"]
-  K1 --> K1_7["bmo:ObservationRequirement"]
-  K1 --> K1_8["bmo:ReportingCrosswalk"]
-  K1 --> K1_9["bmo:SpectralAnomaly"]
-  K1 --> K1_10["up:Assertion"]
-  K1 --> K1_11["up:CandidateSet"]
-  K1 --> K1_12["up:ConceptualUnit"]
-  K1 --> K1_13["up:ConfidenceAssessment"]
-  K1 --> K1_14["up:Crosswalk"]
-  K1 --> K1_15["up:DerivedDatum"]
-  K1 --> K1_16["up:EpistemicStatus"]
-  K1 --> K1_17["up:EvidenceItem"]
-  K1 --> K1_18["up:ExternalAssignment"]
-  K1 --> K1_19["up:InformationArtifact"]
-  K1 --> K1_20["up:MappingFidelity"]
-  K1 --> K1_21["up:RequirementSpecification"]
-  K1 --> K1_22["up:RuleSetVersion"]
-  K1 --> K1_23["up:SupportDescription"]
-  K1 --> K1_24["up:ThresholdSpecification"]
-  K2["matter"]
-  K2 --> K2_0["bmo:Specimen"]
-  K2 --> K2_1["up:Specimen"]
-  K3["matter (object aggregate)"]
-  K3 --> K3_0["bmo:Host"]
-  K3 --> K3_1["up:OccurrentAggregate"]
-  K4["matter (object)"]
-  K4 --> K4_0["bmo:Container"]
-  K5["place (site)"]
-  K5 --> K5_0["bmo:Farm"]
-  K5 --> K5_1["bmo:Field"]
-  K5 --> K5_2["bmo:Zone"]
-  K5 --> K5_3["up:SurveyedSite"]
-  K6["process"]
-  K6 --> K6_0["bmo:Assay"]
-  K6 --> K6_1["bmo:CustodyChain"]
-  K6 --> K6_2["bmo:Flight"]
-  K6 --> K6_3["bmo:SampleCollection"]
-  K6 --> K6_4["up:AnalysisProcess"]
-  K6 --> K6_5["up:DisturbanceEvent"]
-  K6 --> K6_6["up:ObservationProcess"]
-  K6 --> K6_7["up:ProvenanceChain"]
-  K6 --> K6_8["up:RecordedProcess"]
-  K6 --> K6_9["up:SamplingProcess"]
-  K6 --> K6_10["up:TransformationEvent"]
-  K7["quality"]
-  K7 --> K7_0["up:Condition"]
-  K8["role"]
-  K8 --> K8_0["up:EvidentialRole"]
-```
+    OA -. "not equivalent" .-> DD
+    DD -. "not equivalent" .-> RD
+    RD -. "not equivalent" .-> AL
+~~~
 
-## Subclass hierarchy
+## 2. Sensor-agnostic class structure
 
-Local classes only; the BFO parents are in the anchoring diagram above.
-
-```mermaid
+~~~mermaid
 classDiagram
-  up_AnalysisProcess <|-- bmo_Assay
-  up_ConfidenceAssessment <|-- bmo_ConfidenceAssessment
-  up_ConceptualUnit <|-- bmo_ConfidenceTier
-  up_ProvenanceChain <|-- bmo_CustodyChain
-  up_Assertion <|-- bmo_Detection
-  up_ThresholdSpecification <|-- bmo_DetectionLimit
-  up_SurveyedSite <|-- bmo_Farm
-  up_SurveyedSite <|-- bmo_Field
-  up_ObservationProcess <|-- bmo_Flight
-  up_InformationArtifact <|-- bmo_ImageryReference
-  up_RequirementSpecification <|-- bmo_ObservationRequirement
-  up_Crosswalk <|-- bmo_ReportingCrosswalk
-  up_SamplingProcess <|-- bmo_SampleCollection
-  up_Specimen <|-- bmo_Specimen
-  up_DerivedDatum <|-- bmo_SpectralAnomaly
-  up_SurveyedSite <|-- bmo_Zone
-  up_RecordedProcess <|-- up_AnalysisProcess
-  up_InformationArtifact <|-- up_Assertion
-  up_InformationArtifact <|-- up_CandidateSet
-  up_InformationArtifact <|-- up_ConceptualUnit
-  up_InformationArtifact <|-- up_ConfidenceAssessment
-  up_InformationArtifact <|-- up_Crosswalk
-  up_RecordedProcess <|-- up_DisturbanceEvent
-  up_InformationArtifact <|-- up_EpistemicStatus
-  up_InformationArtifact <|-- up_EvidenceItem
-  up_InformationArtifact <|-- up_ExternalAssignment
-  up_InformationArtifact <|-- up_MappingFidelity
-  up_RecordedProcess <|-- up_ObservationProcess
-  up_RecordedProcess <|-- up_ProvenanceChain
-  up_InformationArtifact <|-- up_RuleSetVersion
-  up_RecordedProcess <|-- up_SamplingProcess
-  up_InformationArtifact <|-- up_SupportDescription
-  up_RecordedProcess <|-- up_TransformationEvent
-```
+    class SurveyActivity
+    class Flight
+    class SensorObservation
+    class ObservedAnomaly
+    class SpectralAnomaly
+    class ImageryReference
+    class SpatialSupportDescription
 
-## Relations
+    SurveyActivity <|-- Flight
+    ObservedAnomaly <|-- SpectralAnomaly
+    SurveyActivity --> SensorObservation : madeObservation
+    SurveyActivity --> ObservedAnomaly : observedAnomaly
+    ObservedAnomaly --> SensorObservation : derivedFromObservation
+    ObservedAnomaly --> ImageryReference : referencesImagery
+    ObservedAnomaly --> SpatialSupportDescription : hasSpatialSupport
+~~~
 
-Object properties between local classes, labelled with the property. Datatype properties are omitted - they are in the reference.
+`Flight` and `SpectralAnomaly` remain useful for the initial drone use case, but neither is the root concept.
 
-```mermaid
-graph LR
-  bmo_Assay -->|bmo:assayed| bmo_Specimen
-  bmo_Detection -->|bmo:concernsZone| bmo_Zone
-  bmo_Detection -->|bmo:derivedFromResult| bmo_AssayResult
-  bmo_Detection -->|bmo:hasCustodyChain| bmo_CustodyChain
-  bmo_ConfidenceAssessment -->|bmo:hasTier| bmo_ConfidenceTier
-  up_SurveyedSite -->|bmo:partOfSite| up_SurveyedSite
-  bmo_Flight -->|bmo:producedAnomaly| bmo_SpectralAnomaly
-  bmo_Assay -->|bmo:producedResult| bmo_AssayResult
-  bmo_SpectralAnomaly -->|bmo:referencesImagery| bmo_ImageryReference
-  bmo_Detection -->|bmo:triggeredAlert| bmo_Alert
-  bmo_SpectralAnomaly -->|bmo:triggeredCollection| bmo_SampleCollection
-  bmo_SampleCollection -->|bmo:yieldedSpecimen| bmo_Specimen
-  up_Assertion -->|up:contradictedBy| up_EvidenceItem
-  up_Crosswalk -->|up:crosswalkFrom| up_ConceptualUnit
-  up_RequirementSpecification -->|up:discriminates| up_ConceptualUnit
-  up_InformationArtifact -->|up:epistemicStatus| up_EpistemicStatus
-  up_Crosswalk -->|up:fidelity| up_MappingFidelity
-  up_Assertion -->|up:generatedUnder| up_RuleSetVersion
-  up_Assertion -->|up:hasConfidence| up_ConfidenceAssessment
-  up_Assertion -->|up:recommendsNext| up_RequirementSpecification
-  up_Assertion -->|up:supportedBy| up_EvidenceItem
-```
+## 3. Hypothesis and adaptive-observation structure
 
+~~~mermaid
+classDiagram
+    class SensorIndicationAssertion
+    class DiagnosticHypothesis
+    class DiagnosticCandidateSet
+    class ObservationRequirement
+    class SamplingRecommendation
+
+    SensorIndicationAssertion --> ObservedAnomaly : derivedFromAnomaly
+    DiagnosticCandidateSet --> DiagnosticHypothesis : hasCandidate
+    ObservationRequirement --> DiagnosticHypothesis : discriminates
+    SamplingRecommendation --> DiagnosticHypothesis : discriminates
+~~~
+
+A sensor indication may cause hypotheses to be created. It does not itself assert pathogen presence.
+
+## 4. Physical evidence and custody
+
+~~~mermaid
+classDiagram
+    class CustodyEvent
+    class SampleCollection
+    class TransferEvent
+    class ReceiptEvent
+    class StorageEvent
+    class AliquotEvent
+    class CustodyChain
+    class CustodyRecord
+    class Specimen
+    class Aliquot
+    class Container
+
+    CustodyEvent <|-- SampleCollection
+    CustodyEvent <|-- TransferEvent
+    CustodyEvent <|-- ReceiptEvent
+    CustodyEvent <|-- StorageEvent
+    CustodyEvent <|-- AliquotEvent
+
+    Specimen <|-- Aliquot
+    SampleCollection --> Specimen : yieldedSpecimen
+    TransferEvent --> Specimen : custodySubject
+    ReceiptEvent --> Specimen : custodySubject
+    AliquotEvent --> Specimen : sourceSpecimen
+    AliquotEvent --> Aliquot : producedAliquot
+    CustodyRecord --> CustodyEvent : hasCustodyEvent
+    CustodyRecord --> CustodyChain : describesCustodyChain
+~~~
+
+The real custody history and the record describing it are intentionally separate.
+
+## 5. Diagnostic layer
+
+~~~mermaid
+classDiagram
+    class DiagnosticProcedure
+    class Assay
+    class DiagnosticResult
+    class AssayResult
+    class DiagnosticProcedureProfile
+    class DetectionLimit
+    class DiagnosticResultStatus
+
+    DiagnosticProcedure <|-- Assay
+    DiagnosticResult <|-- AssayResult
+    DiagnosticProcedure --> Specimen : usedSpecimen
+    DiagnosticProcedure --> DiagnosticResult : producedResult
+    DiagnosticResult --> DiagnosticResultStatus : resultStatus
+    DiagnosticProcedureProfile --> DetectionLimit : hasDetectionLimit
+~~~
+
+The method profile states where a method is validated. The result states what happened in one procedure event.
+
+## 6. Epistemic model
+
+~~~mermaid
+classDiagram
+    class EvidenceStage
+    class DiagnosticDisposition
+    class ConfidenceAssessment
+    class EvidenceStrengthLevel
+    class EvidenceCompletenessLevel
+    class ApplicabilityStatus
+    class ProvenanceQualityStatus
+
+    ConfidenceAssessment --> EvidenceStrengthLevel : evidenceStrength
+    ConfidenceAssessment --> EvidenceCompletenessLevel : evidenceCompleteness
+    ConfidenceAssessment --> ApplicabilityStatus : modelApplicability
+    ConfidenceAssessment --> ApplicabilityStatus : assayApplicability
+    ConfidenceAssessment --> ProvenanceQualityStatus : provenanceQuality
+~~~
+
+These are independent dimensions. The ontology deliberately does not recreate the old single ranked confidence tier.
+
+## 7. Assertion hierarchy
+
+~~~mermaid
+classDiagram
+    class Assertion
+    class SensorIndicationAssertion
+    class DiagnosticHypothesis
+    class DiagnosticDetectionAssertion
+    class ConfirmedDetectionAssertion
+    class RegulatoryDetermination
+    class ReportingDecision
+
+    Assertion <|-- SensorIndicationAssertion
+    Assertion <|-- DiagnosticHypothesis
+    Assertion <|-- DiagnosticDetectionAssertion
+    DiagnosticDetectionAssertion <|-- ConfirmedDetectionAssertion
+    Assertion <|-- RegulatoryDetermination
+    Assertion <|-- ReportingDecision
+~~~
+
+All of these are claims. They are preserved as first-class information objects so that evidence, provenance, version, disagreement, and later revision can be represented.
+
+## 8. Reporting and jurisdiction
+
+~~~mermaid
+classDiagram
+    class OperationalJurisdiction
+    class ReportingRule
+    class ExternalReportingScheme
+    class ExternalReportingTerm
+    class ReportingCrosswalk
+    class DiagnosticDetectionAssertion
+    class RegulatoryDetermination
+
+    DiagnosticDetectionAssertion --> ReportingRule : subjectToReportingRule
+    ReportingRule --> OperationalJurisdiction : appliesInJurisdiction
+    RegulatoryDetermination --> DiagnosticDetectionAssertion : basedOnDetection
+    ReportingCrosswalk --> ExternalReportingScheme : targetScheme
+    ReportingCrosswalk --> ExternalReportingTerm : crosswalkTo
+~~~
+
+Arkansas, Louisiana, Missouri, Oklahoma, and Texas are individuals of `OperationalJurisdiction`, not subclasses.
+
+## 9. BFO anchoring by category
+
+~~~mermaid
+flowchart TB
+    BFO[BFO 2.0]
+    INFO[Information / assertions]
+    PROC[Processes]
+    MAT[Material entities]
+    SITE[Sites / places]
+
+    BFO --> INFO
+    BFO --> PROC
+    BFO --> MAT
+    BFO --> SITE
+
+    INFO --> SI[SensorIndicationAssertion]
+    INFO --> DH[DiagnosticHypothesis]
+    INFO --> DR[DiagnosticResult]
+    INFO --> DD[DiagnosticDetectionAssertion]
+    INFO --> RR[ReportingRule]
+
+    PROC --> SA[SurveyActivity]
+    PROC --> CE[CustodyEvent]
+    PROC --> DP[DiagnosticProcedure]
+
+    MAT --> SP[Specimen]
+    MAT --> AQ[Aliquot]
+    MAT --> CT[Container]
+
+    SITE --> F[Farm]
+    SITE --> FI[Field]
+    SITE --> Z[Zone]
+~~~
+
+The shared upper module exists to make category mistakes visible. A diagnostic result, for example, is information about a physical specimen; it is not itself material.
