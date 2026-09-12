@@ -174,3 +174,37 @@ Every new term must answer an operational competency question.
 This repository has historically been assembled from a source monorepo. A future publish can overwrite direct edits made here.
 
 Any accepted change must therefore be ported into the source-of-truth publication workspace before the next automated publish.
+
+
+## Persistent identifiers and licensing
+
+Canonical Black Mesa ontology identifiers use:
+
+- ontology IRI: `https://w3id.org/black-mesa/bmo`
+- term namespace: `https://w3id.org/black-mesa/bmo/`
+- upper ontology IRI: `https://w3id.org/black-mesa/upper`
+
+Do not mint new local terms under `example.org`. Prefer canonical external identifiers for crops, pathogens, units, sensors, and standards-managed entities.
+
+Ontology/semantic content is CC BY 4.0. Software/tooling is Apache-2.0. Do not copy third-party content into the repository under either license unless its own license permits it.
+
+## Pilot pathosystems
+
+The current reference profiles are:
+
+- rice / rice blast;
+- soybean / frogeye leaf spot;
+- bread wheat / stripe rust;
+- bread wheat / Karnal bunt as a regulatory stress test.
+
+These are reference-data profiles, not subclasses in the core ontology.
+
+## Regulatory-rule governance
+
+Files under `rules/` are versioned decision-support records. A rule with status `DraftRequiresLegalRegulatoryReview` is non-operative.
+
+Never infer that a draft rule authorizes notification, quarantine, movement restriction, destruction, or any other external regulatory action.
+
+Phase 1 external notification always requires human approval.
+
+An approved rule must have authoritative source evidence, jurisdiction, effective date, reviewed triggers, recipients, deadlines, and applicable restrictions recorded.
