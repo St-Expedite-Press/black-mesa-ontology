@@ -1,3 +1,5 @@
+> **Superseded by v0.3.** This document is retained as design history. The current model is [detection-ontology-v0.3.md](detection-ontology-v0.3.md). v0.3 makes sensing modality-agnostic, separates evidence stage from diagnostic disposition and confidence, formalizes specimen/aliquot custody, and separates scientific detection from regulatory action. Do not implement new integrations from the v0.2 confidence-tier model.
+
 ---
 title: The Detection Ontology
 subtitle: A conceptual schema for pre-symptomatic agricultural pathogen detection — entities, provenance, confidence, and the boundary of the graph
