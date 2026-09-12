@@ -65,3 +65,16 @@ The ontology deliberately does not equate Black Mesa/NPDN diagnostic disposition
 The ontology is designed to reference canonical external identifiers for crops, pathogens, hosts, and diagnostic methods rather than copying external taxonomies into the local schema.
 
 Specific pilot identifiers and method profiles will be added when the initial crop/pathogen use cases and diagnostic procedures are selected.
+
+
+## Black Mesa licensing
+
+Project-authored ontology/semantic content, SHACL, crosswalks, RDF reference data, examples, diagrams, and documentation are licensed CC BY 4.0 unless otherwise stated.
+
+Software/tooling under `src/`, `tools/`, `tests/`, and `.github/` is licensed Apache-2.0.
+
+See `LICENSE`, `LICENSE-ONTOLOGY.md`, and `LICENSE-SOFTWARE.md`.
+
+## Persistent identifiers
+
+The canonical Black Mesa identifier base is `https://w3id.org/black-mesa/`. The repository contains the canonical declarations and a redirect-registration plan in `docs/persistence.md`. W3ID dereferenceability remains dependent on registration with the external W3ID registry.
