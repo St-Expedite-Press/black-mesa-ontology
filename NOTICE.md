@@ -1,40 +1,67 @@
 # NOTICE
 
-## IUCN Global Ecosystem Typology
+This repository contains the Black Mesa sensor-agnostic agricultural biosecurity detection ontology and supporting validation/documentation.
 
-`schema/get-core.ttl` is generated from:
+External standards and vocabularies remain the intellectual property of their respective maintainers. Black Mesa reuses identifiers, structural concepts, or project-local proxy terms only as needed for interoperability.
 
-> Keith, D.A., Ferrer-Paris, J.R., Nicholson, E. and Kingsford, R.T. (eds.)
-> (2020). *IUCN Global Ecosystem Typology 2.0: Descriptive profiles for biomes
-> and ecosystem functional groups.* Gland, Switzerland: IUCN.
+## Basic Formal Ontology (BFO)
 
-It carries the realm, biome and Ecosystem Functional Group names and, for 106
-of the 108 groups, the ECOLOGICAL TRAITS, KEY ECOLOGICAL DRIVERS and
-DISTRIBUTION text of the descriptive profiles, reproduced verbatim.
+`vendor/bfo.owl` is BFO 2.0 (ISO/IEC 21838-2), redistributed unmodified under its own licence.
 
-The monograph states: *"Reproduction of this publication for educational or
-other non-commercial purposes is authorized without prior written permission
-from the copyright holder provided the source is fully acknowledged."* This
-repository is non-commercial research and the source is acknowledged here, in
-the generated file's header, and in its `dct:source` triple.
+It is vendored so validation resolves `owl:imports` offline and every validation run reasons over the same hierarchy.
 
-Copyright in that text remains with IUCN. The `get:` namespace used here is a
-project-local stand-in and is **not** an official IUCN identifier scheme.
+## IAO / RO
 
-## IUCN Red List of Ecosystems
+The shared upper module references selected published Information Artifact Ontology and Relation Ontology IRIs. It does not redistribute the full ontologies.
 
-`schema/rle-core.ttl` models categories and criteria from:
+## W3C SOSA/SSN
 
-> Bland, L.M., Keith, D.A., Miller, R.M., Murray, N.J. and Rodriguez, J.P.
-> (eds.) (2016/2017). *Guidelines for the application of IUCN Red List of
-> Ecosystems Categories and Criteria, Version 1.1.* Gland, Switzerland: IUCN.
+Black Mesa aligns sensor, platform, and observation semantics to SOSA/SSN so the domain ontology remains sensor-agnostic.
 
-**No assessment in this repository is an IUCN assessment.** Every one is a
-`rle:ProvisionalAssessment`, marked PROVISIONAL AND NON-IUCN, and the official
-status of every unit proposed here is `rle:NE` (Not Evaluated).
+Source: https://www.w3.org/TR/vocab-ssn/
 
-## Basic Formal Ontology
+## W3C PROV-O
 
-`vendor/bfo.owl` is BFO 2.0 (ISO/IEC 21838-2), redistributed unmodified under
-its own licence. It is vendored so that validation resolves `owl:imports`
-offline and every run reasons over the same hierarchy.
+PROV-O is used for provenance and derivation semantics.
+
+Source: https://www.w3.org/TR/prov-o/
+
+## OGC GeoSPARQL
+
+GeoSPARQL is the intended spatial vocabulary for geometry and spatial relationships.
+
+Source: https://www.ogc.org/standard/geosparql/
+
+## NPDN National Data Repository
+
+`schema/reporting-crosswalks.ttl` contains project-local proxy resources for the National Plant Diagnostic Network National Data Repository diagnostic-confidence values:
+
+- Confirmed
+- Suspected
+- Not Detected
+- Undetermined
+
+These proxy IRIs are **not official NPDN RDF identifiers**. They exist only so Black Mesa can represent explicit, directional mappings while citing the public NPDN definitions.
+
+Sources:
+
+- https://www.npdn.org/public/understanding_ndr_data
+- https://www.npdn.org/public/confidence_levels_definitions
+
+Black Mesa's sensor-indication stage is explicitly recorded as having no direct NPDN diagnostic-confidence mapping.
+
+## OASIS Common Alerting Protocol 1.2
+
+`schema/reporting-crosswalks.ttl` contains project-local proxy resources for selected CAP 1.2 alert certainty terms.
+
+These are **not official OASIS RDF identifiers**.
+
+Source: https://docs.oasis-open.org/emergency/cap/v1.2/CAP-v1.2.html
+
+The ontology deliberately does not equate Black Mesa/NPDN diagnostic dispositions with CAP certainty. CAP is an alert-message standard; diagnostic-to-alert translation belongs in an explicit reporting policy.
+
+## Taxonomic and diagnostic reference data
+
+The ontology is designed to reference canonical external identifiers for crops, pathogens, hosts, and diagnostic methods rather than copying external taxonomies into the local schema.
+
+Specific pilot identifiers and method profiles will be added when the initial crop/pathogen use cases and diagnostic procedures are selected.

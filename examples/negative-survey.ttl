@@ -1,0 +1,24 @@
+@prefix ex:   <https://example.org/black-mesa/example/> .
+@prefix bmo:  <https://example.org/bmo/> .
+@prefix sosa: <http://www.w3.org/ns/sosa/> .
+
+# A survey with no anomaly is still a recorded survey. It MUST NOT be turned
+# into bmo:NotDetected, because no diagnostic test has occurred.
+
+ex:Sensor-B a sosa:Sensor .
+ex:Platform-B a sosa:Platform .
+
+ex:Farm-02 a bmo:Farm .
+ex:Field-02 a bmo:Field ; bmo:partOfSite ex:Farm-02 .
+ex:Zone-02 a bmo:Zone ; bmo:partOfSite ex:Field-02 .
+
+ex:Survey-200 a bmo:SurveyActivity ;
+    bmo:usesSensor ex:Sensor-B ;
+    bmo:hostedByPlatform ex:Platform-B ;
+    bmo:madeObservation ex:Observation-200 .
+
+ex:Observation-200 a bmo:SensorObservation .
+
+# There is intentionally no bmo:observedAnomaly triple and no diagnostic
+# disposition. The correct interpretation is "surveyed; no anomaly recorded",
+# not "pathogen not detected".

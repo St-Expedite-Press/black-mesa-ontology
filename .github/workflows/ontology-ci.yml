@@ -1,0 +1,68 @@
+name: ontology-ci
+
+on:
+  push:
+    branches:
+      - main
+      - v0.3-sensor-agnostic-evidence-model
+    paths:
+      - "schema/**"
+      - "upper/**"
+      - "vendor/**"
+      - "tests/**"
+      - "tools/**"
+      - "src/**"
+      - "examples/**"
+      - ".github/workflows/ontology-ci.yml"
+  pull_request:
+    paths:
+      - "schema/**"
+      - "upper/**"
+      - "vendor/**"
+      - "tests/**"
+      - "tools/**"
+      - "examples/**"
+      - ".github/workflows/ontology-ci.yml"
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install ontology test dependencies
+        run: python -m pip install rdflib pyshacl owlrl pytest
+
+      - name: Parse and validate ontology
+        run: |
+          python tools/validate_ontology.py \
+            schema/bmo-core.ttl \
+            schema/reporting-crosswalks.ttl \
+            --shapes schema/shapes.ttl
+
+      - name: Run adversarial tests
+        run: python -m pytest tests/ -q
+
+      - name: Smoke-test documentation generator
+        run: |
+          python tools/schema_docs.py --schema schema --out /tmp/bmo-docs
+          test -s /tmp/bmo-docs/schema-reference.md
+          test -s /tmp/bmo-docs/class-diagram.md
+
+      - name: Parse worked examples with the schema
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import rdflib
+
+          for path in sorted(Path("examples").glob("*.ttl")):
+              g = rdflib.Graph()
+              g.parse(path, format="turtle")
+              print(f"{path}: {len(g)} triples")
+          PY

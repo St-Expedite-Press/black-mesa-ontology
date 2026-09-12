@@ -1,85 +1,167 @@
-# Black Mesa detection ontology
+# Black Mesa ontology
 
-Phase 1 conceptual schema for pre-symptomatic agricultural pathogen detection:
-from a drone-sensed spectral anomaly, through sample collection and field
-assay, to a record a state agriculture department can act on.
+Semantic and evidentiary core for the Black Mesa agricultural biosecurity platform.
+
+Black Mesa is designed to move from **sensor observation → anomaly → hypothesis → targeted sampling → legally defensible specimen custody → diagnostic result → scientific determination → reporting or alerting** without collapsing those stages into one opaque "detection" flag.
+
+The ontology is **sensor-agnostic**. Drone flight and spectral imagery are expected early implementations, but neither is part of the core semantic contract. Thermal systems, fixed stations, ground robots, aircraft, satellite products, or other observation systems should enter through the same evidence model.
+
+## What this repository is
+
+This is the documented operational ontology and validation suite for the Phase 1 detection/evidence chain.
+
+v0.3 design commitments:
+
+- Observation, anomaly, hypothesis, diagnostic determination, regulatory determination, and alert are different objects.
+- A **sensor indication is not a diagnosis** and cannot assert pathogen presence.
+- Diagnostic disposition (`Confirmed`, `Suspected`, `Not Detected`, `Undetermined`) is separate from evidence stage and confidence.
+- Confidence is multi-axis: evidence strength, evidence completeness, applicability, provenance quality, and optional calibrated probability.
+- Sampling creates a persistent specimen identity; aliquots receive their own identities while retaining genealogy.
+- Legally defensible chain of custody is represented as explicit collection, transfer, receipt, storage, and aliquot events.
+- Scientific detection is kept separate from regulatory/reporting decisions.
+- Raw imagery and dense sensor arrays stay outside the RDF graph and are referenced by URI + checksum.
+- Crops, pathogens, sensors, methods, and other reference vocabularies should use external canonical identifiers rather than being reinvented locally.
+- Initial operational jurisdictions are Arkansas, Louisiana, Missouri, Oklahoma, and Texas, represented as data rather than ontology subclasses.
 
 ## Read this first
 
-This is a **documented conceptual schema**, not a fully axiomatised OWL
-ontology. The formalisation beyond this point is deliberately deferred, and
-what is deferred is recorded rather than left implicit.
+If you are not an ontology engineer:
 
-- 20 classes, 22 properties, every class anchored to BFO 2.0.
-- `schema/shapes.ttl` carries 10 SHACL shapes, tested against 7 planted violations.
-- **Crosswalk entries are not authored.** `bmo:ReportingCrosswalk` is defined and constrained, but no NPDN or CAP term appears anywhere in the schema yet. The mapping the design argues is most fragile is, as of now, unwritten.
-- Class-count and sizing figures in the paper derive from a Data Architecture Assessment that is not in this repository and are second-hand.
+1. [Team guide](docs/team-guide.md) — what RDF, OWL, SHACL, BFO, SOSA, provenance, custody, confidence, and crosswalks mean in plain language.
+2. [Architecture](docs/architecture.md) — how the Black Mesa product is represented end to end, with workflow diagrams.
+3. [Canonical workflow](examples/canonical-workflow.ttl) — a worked survey-to-confirmed-detection record.
+4. [Negative survey](examples/negative-survey.ttl) — why "surveyed with no anomaly" is not the same thing as "pathogen not detected."
 
-## Design commitments
+For ontology work:
 
-**Reuse before invention.** SOSA/SSN for sensing, QUDT for units, GeoSPARQL for
-geometry, Plant Ontology for plant part and growth stage, NCBITaxon for
-pathogen and host identifiers by reference only. Cherry-picked terms from OBI
-and PATO. The NPDN confidence enumeration and the CAP severity/certainty/
-urgency triad are adopted rather than reinvented.
+- [Domain schema](schema/bmo-core.ttl)
+- [Reporting crosswalks](schema/reporting-crosswalks.ttl)
+- [SHACL constraints](schema/shapes.ttl)
+- [Schema reference](docs/schema-reference.md)
+- [Class diagram](docs/class-diagram.md)
+- [v0.3 design note](docs/detection-ontology-v0.3.md)
 
-**Three things are invented**, because nothing models them: a pre-symptomatic
-confidence tier, since every published enumeration presupposes visible
-symptoms; the sensor-to-sample chain of custody, which no vocabulary spans; and
-assay-specific result semantics.
+## The workflow in one picture
 
-**The architecture constraint.** Raw spectral imagery must never enter the graph
-as per-pixel or per-tile triples - it inflates the store by roughly two orders
-of magnitude and destroys query performance. Imagery is referenced by URI and
-checksum from object storage, and a SHACL shape refuses the alternative.
+~~~mermaid
+flowchart LR
+    A[Survey activity] --> B[Sensor observation]
+    B --> C[Observed anomaly]
+    C --> D[Sensor indication]
+    D --> E[Diagnostic hypotheses]
+    E --> F[Next-best observation or sampling]
+    F --> G[Specimen + custody record]
+    G --> H[Diagnostic procedure]
+    H --> I[Diagnostic result]
+    I --> J[Scientific detection assertion]
+    J --> K[Reporting / regulatory evaluation]
+    K --> L[Alert or notification]
 
-**A detection is an assertion**, carrying evidence and provenance, rather than
-a property stamped on a field. It must resolve back to the flight, the
-collection and the assay that produced it, and it records the rule set version
-in force when it was made.
+    C -. does not equal .-> J
+    J -. does not equal .-> K
+    K -. does not equal .-> L
+~~~
 
-## Documentation
+## Why the distinctions matter
 
-All Markdown, and the reference is generated from the Turtle so it cannot drift
-from the schema.
+A sensor may identify an abnormal crop signature without knowing its cause. That should trigger investigation, not silently become a pathogen record.
 
-| Document | What it is |
+A laboratory result may be negative without proving that a pathogen is absent from an entire field.
+
+A scientifically confirmed detection may not by itself determine whether an agency must be notified, because reporting rules are jurisdictional and versioned.
+
+A specimen without a continuous identity and custody history may be scientifically interesting but inadequate for a regulatory action.
+
+The ontology exists to keep these distinctions machine-readable.
+
+## External standards and vocabularies
+
+| Standard | Role |
 |---|---|
-| [`docs/schema-reference.md`](docs/schema-reference.md) | **Generated.** Every class and property, grouped by what kind of thing it is, with its full description and the SHACL constraints it is subject to |
-| [`docs/class-diagram.md`](docs/class-diagram.md) | **Generated.** Mermaid diagrams - anchoring, subclass hierarchy, relations - rendered by GitHub, no image files |
-| [`docs/detection-ontology-v0.2.md`](docs/detection-ontology-v0.2.md) | The paper: the detection chain, the confidence tier that does not exist, the boundary of the graph, and the case against the scope decision |
+| BFO 2.0 | upper-level categories: information, process, material, site, quality, role |
+| IAO / RO | information artifacts and core relations |
+| SOSA/SSN | sensors, platforms, observation semantics |
+| PROV-O | provenance, derivation, agents, assertion time |
+| GeoSPARQL | geometry and spatial relationships |
+| QUDT | quantitative values and units when measurement modules are added |
+| OBI | selected assay/specimen concepts |
+| NCBITaxon and other authorities | external organism identifiers |
+| NPDN NDR | diagnostic reporting dispositions and downstream interoperability |
+| OASIS CAP 1.2 | alert-message semantics; not treated as diagnostic confidence |
 
-Regenerate the reference after any schema change:
+The NPDN diagnostic vocabulary uses Confirmed, Suspected, Not Detected, and Undetermined. Black Mesa maps its **diagnostic dispositions** to those values while explicitly refusing to map a sensor-only indication into them.
 
-```bash
-python tools/schema_docs.py --schema schema --out docs
-```
+CAP certainty is intentionally not treated as equivalent to diagnostic disposition. CAP describes the subject event of an alert; translation belongs in an explicit reporting rule.
 
-There are no PDFs. Markdown renders here, diffs line by line, deep-links, and
-can be commented on a sentence at a time; a binary does none of that.
+## Repository layout
 
-## Layout
+~~~text
+schema/
+    bmo-core.ttl
+    reporting-crosswalks.ttl
+    shapes.ttl
 
-```
-schema/     bmo-core.ttl and shapes.ttl
-upper/      the shared BFO-anchored upper module
-vendor/     BFO 2.0, redistributed unmodified
-tools/      validate, visualise, generate docs
-tests/      pytest, including adversarial SHACL fixtures
-docs/       everything above
-```
+upper/
+    upper-core.ttl
 
-## Verify it
+vendor/
+    bfo.owl
 
-```bash
+examples/
+    canonical-workflow.ttl
+    negative-survey.ttl
+
+tests/
+    fixtures/bmo-violations.ttl
+    test_detection_shacl.py
+    test_anchoring.py
+
+tools/
+    validate_ontology.py
+    visualize_ontology.py
+    schema_docs.py
+
+docs/
+    team-guide.md
+    architecture.md
+    detection-ontology-v0.3.md
+    schema-reference.md
+    class-diagram.md
+~~~
+
+## Validate it
+
+~~~bash
 pip install -r requirements.txt
-python tools/validate_ontology.py schema/*.ttl --shapes schema/shapes.ttl
+
+python tools/validate_ontology.py \
+  schema/bmo-core.ttl \
+  schema/reporting-crosswalks.ttl \
+  --shapes schema/shapes.ttl
+
 python -m pytest tests/ -q
-```
+~~~
 
-See `NOTICE.md` for source acknowledgements and `CLAUDE.md` for working rules.
+Regenerate structural documentation after schema changes:
 
----
+~~~bash
+python tools/schema_docs.py --schema schema --out docs
+~~~
 
-Assembled from a source monorepo by `tools/publish_repo.py`. Edits made
-directly here are overwritten on the next publish.
+## Current scope
+
+Phase 1 is the **evidence chain**, not an exhaustive crop/pathogen taxonomy and not a regulatory rules engine.
+
+The first deployment region is the Arkansas–Louisiana–Missouri–Oklahoma–Texas cluster. The core schema must remain portable beyond it.
+
+Near-term work after v0.3:
+
+- bind real crop and pathogen identifiers for pilot use cases;
+- define actual sensor/model records once hardware and models are selected;
+- add validated diagnostic method profiles;
+- encode jurisdiction-specific reporting rules separately from scientific detections;
+- add environmental context and spread inference without contaminating the core evidence model.
+
+## Publishing note
+
+This public repository has historically been assembled from a source monorepo. A generated publish can overwrite direct edits here. Any accepted changes therefore need to be carried back into the source-of-truth publishing workspace before the next automated publish.
