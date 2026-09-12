@@ -1,31 +1,21 @@
 @prefix sh:   <http://www.w3.org/ns/shacl#> .
 @prefix bmo:  <https://example.org/bmo/> .
 @prefix up:   <https://example.org/upper/> .
-@prefix obo:  <http://purl.obolibrary.org/obo/> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
 @prefix owl:  <http://www.w3.org/2002/07/owl#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
 
 # ===========================================================================
-# Constraints for the detection core.
-# Each encodes a decision argued in docs/detection-ontology-v0.2.md, and each
-# is exercised against a deliberate violation in tests/fixtures/.
+# Black Mesa v0.3 SHACL constraints.
+# These shapes enforce product semantic boundaries rather than every possible
+# biological truth. Domain correctness still requires expert review.
 # ===========================================================================
-
-# --- Every class must say what kind of thing it is ------------------------
-#
-# THE CHECK REQUIRES THE IMPORT CLOSURE. It asks for an ancestor whose IRI is a
-# BFO class, which only exists in the graph once owl:imports has been followed
-# to vendor/bfo.owl. validate_ontology.py does that by default; running it with
-# --skip-imports will fail every class here, and that is the intended
-# behaviour. The check was previously satisfied by reaching any IRI under the
-# up: namespace, which meant it verified a naming convention: nothing confirmed
-# that the upper terms themselves reached BFO.
 
 bmo:UpperAnchorShape a sh:NodeShape ;
     sh:targetClass owl:Class ;
     sh:sparql [
-        sh:message "UNANCHORED CLASS: every domain class must reach BFO via the shared upper module (upper/upper-core.ttl). Declare what kind of thing it is - an information artifact, a process, a material entity, a site, a quality, or a role." ;
+        sh:message "UNANCHORED CLASS: every Black Mesa class must reach BFO via the shared upper module." ;
         sh:prefixes bmo: ;
         sh:select """
             PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
@@ -33,52 +23,13 @@ bmo:UpperAnchorShape a sh:NodeShape ;
             SELECT $this WHERE {
               $this a owl:Class .
               FILTER(STRSTARTS(STR($this), "https://example.org/bmo/"))
-              FILTER NOT EXISTS { $this rdfs:subClassOf+ ?anchor .
-                                  FILTER(STRSTARTS(STR(?anchor), "http://purl.obolibrary.org/obo/BFO_")) }
+              FILTER NOT EXISTS {
+                $this rdfs:subClassOf+ ?anchor .
+                FILTER(STRSTARTS(STR(?anchor), "http://purl.obolibrary.org/obo/BFO_"))
+              }
             }""" ] .
 
-# --- A detection is an assertion, and must carry what makes it one --------
-
-bmo:DetectionShape a sh:NodeShape ;
-    sh:targetClass bmo:Detection ;
-    sh:property [
-        sh:path bmo:concernsZone ; sh:minCount 1 ; sh:maxCount 1 ;
-        sh:message "A detection must concern exactly one zone. Asserting at field or farm level overstates what a point sample supports." ] ;
-    sh:property [
-        sh:path bmo:derivedFromResult ; sh:minCount 1 ;
-        sh:message "A detection must derive from at least one assay result. A detection with no result behind it is an opinion." ] ;
-    sh:property [
-        sh:path bmo:hasCustodyChain ; sh:minCount 1 ;
-        sh:message "A detection must carry a custody chain. A detection that cannot be resolved back to the flight, collection and assay that produced it is not evidence, and provenance cannot be retrofitted." ] ;
-    sh:property [
-        sh:path up:generatedUnder ; sh:minCount 1 ;
-        sh:message "A detection must record the rule set version in force when it was produced. Without it, a later rule change makes every past detection uninterpretable." ] ;
-    sh:property [
-        sh:path bmo:triggeredAlert ; sh:maxCount 1 ;
-        sh:message "A detection triggers at most one alert. Raising an alert is a separate decision from determining presence." ] .
-
-# --- The chain cardinalities -----------------------------------------------
-
-bmo:SpectralAnomalyShape a sh:NodeShape ;
-    sh:targetClass bmo:SpectralAnomaly ;
-    sh:property [
-        sh:path bmo:triggeredCollection ; sh:maxCount 1 ;
-        sh:message "An anomaly triggers at most one collection." ] ;
-    sh:property [
-        sh:path bmo:referencesImagery ; sh:minCount 1 ;
-        sh:message "An anomaly must reference the imagery it was found in, so the finding can be re-examined against the bytes that produced it." ] .
-
-bmo:AssayShape a sh:NodeShape ;
-    sh:targetClass bmo:Assay ;
-    sh:property [
-        sh:path bmo:assayed ; sh:minCount 1 ; sh:maxCount 1 ;
-        sh:message "An assay takes exactly one specimen as input." ] ;
-    sh:property [
-        sh:path bmo:producedResult ; sh:minCount 1 ; sh:maxCount 1 ;
-        sh:message "An assay produces exactly one result. A re-run is a different assay." ] .
-
-# --- THE GRAPH BOUNDARY ----------------------------------------------------
-# The decision with a 665x consequence. Imagery is referenced, never embedded.
+# --- Large sensor artifacts stay outside the graph -------------------------
 
 bmo:ImageryReferenceShape a sh:NodeShape ;
     sh:targetClass bmo:ImageryReference ;
@@ -86,13 +37,13 @@ bmo:ImageryReferenceShape a sh:NodeShape ;
         sh:path bmo:storageURI ; sh:minCount 1 ; sh:maxCount 1 ; sh:datatype xsd:anyURI ;
         sh:message "An imagery reference must carry exactly one storage URI." ] ;
     sh:property [
-        sh:path bmo:checksum ; sh:minCount 1 ;
-        sh:message "An imagery reference must carry a checksum, so it can be shown to resolve to the bytes that were analysed." ] .
+        sh:path bmo:checksum ; sh:minCount 1 ; sh:maxCount 1 ;
+        sh:message "An imagery reference must carry exactly one checksum." ] .
 
 bmo:NoTiledImageryShape a sh:NodeShape ;
     sh:targetClass bmo:ImageryReference ;
     sh:sparql [
-        sh:message "GRAPH BOUNDARY VIOLATION: imagery must be referenced by URI and checksum, never tiled into the graph. Per-tile or per-pixel triples inflate the store by roughly 665x, and the failure is not gradual - query planning, indexing and backup economics all change character." ;
+        sh:message "GRAPH BOUNDARY VIOLATION: imagery and dense sensor arrays must be referenced, not expanded into per-pixel, per-tile, or per-band triples." ;
         sh:prefixes bmo: ;
         sh:select """
             PREFIX bmo: <https://example.org/bmo/>
@@ -103,43 +54,248 @@ bmo:NoTiledImageryShape a sh:NodeShape ;
                   || STRSTARTS(STR(?p), "https://example.org/bmo/band"))
             }""" ] .
 
-# --- Confidence: the pre-symptomatic tier must not be flattened -----------
+# --- Sensor indication is not a diagnosis ---------------------------------
+
+bmo:SensorIndicationShape a sh:NodeShape ;
+    sh:targetClass bmo:SensorIndicationAssertion ;
+    sh:property [
+        sh:path bmo:concernsZone ; sh:minCount 1 ; sh:maxCount 1 ;
+        sh:message "A sensor indication must concern exactly one operational zone." ] ;
+    sh:property [
+        sh:path bmo:derivedFromAnomaly ; sh:minCount 1 ;
+        sh:message "A sensor indication must derive from at least one observed anomaly." ] ;
+    sh:property [
+        sh:path bmo:hasConfidenceAssessment ; sh:minCount 1 ; sh:maxCount 1 ;
+        sh:node bmo:SensorConfidenceShape ;
+        sh:message "A sensor indication must carry one confidence assessment with model applicability recorded." ] ;
+    sh:property [
+        sh:path bmo:hasEvidenceStage ; sh:minCount 1 ; sh:maxCount 1 ;
+        sh:hasValue bmo:SensorIndicationStage ;
+        sh:message "A sensor indication must be explicitly marked as the sensor-indication evidence stage." ] ;
+    sh:property [
+        sh:path bmo:assertsPathogen ; sh:maxCount 0 ;
+        sh:message "A sensor indication cannot assert pathogen presence. Create a diagnostic hypothesis instead." ] ;
+    sh:property [
+        sh:path up:generatedUnder ; sh:minCount 1 ; sh:maxCount 1 ;
+        sh:message "A sensor indication must record the model or rule version that generated it." ] ;
+    sh:property [
+        sh:path prov:generatedAtTime ; sh:minCount 1 ; sh:maxCount 1 ; sh:datatype xsd:dateTime ;
+        sh:message "A sensor indication must record its assertion time." ] .
+
+# --- Diagnostic detection has a higher evidentiary contract ----------------
+
+bmo:DiagnosticDetectionShape a sh:NodeShape ;
+    sh:targetClass bmo:DiagnosticDetectionAssertion ;
+    sh:property [
+        sh:path bmo:concernsZone ; sh:minCount 1 ; sh:maxCount 1 ;
+        sh:message "A diagnostic detection must concern exactly one operational zone." ] ;
+    sh:property [
+        sh:path bmo:assertsPathogen ; sh:minCount 1 ; sh:maxCount 1 ;
+        sh:message "A diagnostic detection must identify exactly one asserted pathogen taxon or canonical external identifier." ] ;
+    sh:property [
+        sh:path bmo:derivedFromResult ; sh:minCount 1 ;
+        sh:message "A diagnostic detection must derive from at least one diagnostic result." ] ;
+    sh:property [
+        sh:path bmo:hasConfidenceAssessment ; sh:minCount 1 ; sh:maxCount 1 ;
+        sh:node bmo:DiagnosticConfidenceShape ;
+        sh:message "A diagnostic detection must carry one confidence assessment with assay applicability recorded." ] ;
+    sh:property [
+        sh:path bmo:hasEvidenceStage ; sh:minCount 1 ; sh:maxCount 1 ;
+        sh:message "A diagnostic detection must state its evidence stage." ] ;
+    sh:property [
+        sh:path bmo:hasDiagnosticDisposition ; sh:minCount 1 ; sh:maxCount 1 ;
+        sh:message "A diagnostic detection must state one diagnostic disposition: Confirmed, Suspected, Not Detected, or Undetermined." ] ;
+    sh:property [
+        sh:path bmo:hasCustodyRecord ; sh:minCount 1 ; sh:maxCount 1 ;
+        sh:node bmo:CustodyRecordShape ;
+        sh:message "A diagnostic detection must carry one custody record for the physical evidence on which it relies." ] ;
+    sh:property [
+        sh:path up:generatedUnder ; sh:minCount 1 ; sh:maxCount 1 ;
+        sh:message "A diagnostic detection must record the rule or method version in force when it was produced." ] ;
+    sh:property [
+        sh:path prov:generatedAtTime ; sh:minCount 1 ; sh:maxCount 1 ; sh:datatype xsd:dateTime ;
+        sh:message "A diagnostic detection must record its assertion time." ] ;
+    sh:property [
+        sh:path bmo:triggeredAlert ; sh:maxCount 1 ;
+        sh:message "A scientific detection may trigger at most one direct alert record; alert policy remains separate." ] .
+
+bmo:ConfirmedDetectionShape a sh:NodeShape ;
+    sh:targetClass bmo:ConfirmedDetectionAssertion ;
+    sh:property [
+        sh:path bmo:hasDiagnosticDisposition ; sh:hasValue bmo:Confirmed ;
+        sh:message "A ConfirmedDetectionAssertion must have diagnostic disposition Confirmed." ] ;
+    sh:property [
+        sh:path bmo:hasEvidenceStage ; sh:hasValue bmo:ConfirmatoryEvidenceStage ;
+        sh:message "A ConfirmedDetectionAssertion must be at the confirmatory evidence stage." ] .
+
+# --- Confidence is multi-axis ----------------------------------------------
 
 bmo:ConfidenceAssessmentShape a sh:NodeShape ;
     sh:targetClass bmo:ConfidenceAssessment ;
     sh:property [
-        sh:path bmo:hasTier ; sh:minCount 1 ; sh:maxCount 1 ;
-        sh:message "A confidence assessment names exactly one tier." ] ;
-    sh:property [
         sh:path bmo:calibratedProbability ;
         sh:maxCount 1 ; sh:datatype xsd:decimal ;
         sh:minInclusive 0.0 ; sh:maxInclusive 1.0 ;
-        sh:message "Calibrated probability must be a single value in [0,1], present only where a probabilistic model produced it. Its absence is meaningful and must not be imputed." ] ;
+        sh:message "Calibrated probability, when present, must be a single decimal in [0,1]." ] ;
     sh:property [
-        sh:path bmo:assayApplicability ; sh:minCount 1 ;
-        sh:message "Assay applicability must be recorded. An assay used outside its validation has no sensitivity figure that applies to the situation, and omitting this axis hides that." ] .
-
-bmo:ConfidenceTierShape a sh:NodeShape ;
-    sh:targetClass bmo:ConfidenceTier ;
+        sh:path bmo:evidenceStrength ; sh:minCount 1 ; sh:maxCount 1 ;
+        sh:message "Confidence must state evidence strength." ] ;
     sh:property [
-        sh:path bmo:presupposesSymptoms ; sh:minCount 1 ; sh:datatype xsd:boolean ;
-        sh:message "Every tier must declare whether it presupposes visible symptoms. This is what makes the gap in the adopted enumeration machine-readable rather than a matter of prose." ] .
-
-# --- Crosswalks must record what does not cross ---------------------------
-
-bmo:ReportingCrosswalkShape a sh:NodeShape ;
-    sh:targetClass bmo:ReportingCrosswalk ;
+        sh:path bmo:evidenceCompleteness ; sh:minCount 1 ; sh:maxCount 1 ;
+        sh:message "Confidence must state evidence completeness." ] ;
     sh:property [
-        sh:path up:crosswalkFrom ; sh:minCount 1 ; sh:maxCount 1 ;
-        sh:message "A crosswalk must name the internal term it maps from." ] ;
-    sh:property [
-        sh:path up:fidelity ; sh:minCount 1 ; sh:maxCount 1 ;
-        sh:message "A crosswalk must state its fidelity: exact, broader, narrower, partial, or none. A mapping with unstated fidelity silently claims exactness it does not have." ] .
+        sh:path bmo:provenanceQuality ; sh:minCount 1 ; sh:maxCount 1 ;
+        sh:message "Confidence must state provenance quality." ] .
 
-# --- Observation requirements stay observer-neutral -----------------------
+bmo:SensorConfidenceShape a sh:NodeShape ;
+    sh:property [
+        sh:path bmo:modelApplicability ; sh:minCount 1 ; sh:maxCount 1 ;
+        sh:message "Sensor-stage confidence must record model applicability." ] .
+
+bmo:DiagnosticConfidenceShape a sh:NodeShape ;
+    sh:property [
+        sh:path bmo:assayApplicability ; sh:minCount 1 ; sh:maxCount 1 ;
+        sh:message "Diagnostic confidence must record assay applicability." ] .
+
+# --- Sampling and chain of custody -----------------------------------------
+
+bmo:SampleCollectionShape a sh:NodeShape ;
+    sh:targetClass bmo:SampleCollection ;
+    sh:property [
+        sh:path bmo:yieldedSpecimen ; sh:minCount 1 ;
+        sh:message "A sample collection must yield at least one identified specimen." ] ;
+    sh:property [
+        sh:path bmo:occursAtZone ; sh:minCount 1 ; sh:maxCount 1 ;
+        sh:message "A sample collection must record the zone in which it occurred." ] ;
+    sh:property [
+        sh:path bmo:eventTime ; sh:minCount 1 ; sh:maxCount 1 ; sh:datatype xsd:dateTime ;
+        sh:message "A sample collection must record collection time." ] ;
+    sh:property [
+        sh:path bmo:eventAgent ; sh:minCount 1 ;
+        sh:message "A sample collection must identify the responsible collector or collection system." ] .
+
+bmo:CustodyRecordShape a sh:NodeShape ;
+    sh:targetClass bmo:CustodyRecord ;
+    sh:property [
+        sh:path bmo:hasCustodyEvent ; sh:minCount 1 ;
+        sh:message "A custody record must contain at least one custody event." ] .
+
+bmo:TransferEventShape a sh:NodeShape ;
+    sh:targetClass bmo:TransferEvent ;
+    sh:property [
+        sh:path bmo:custodySubject ; sh:minCount 1 ; sh:maxCount 1 ;
+        sh:message "A transfer event must identify exactly one specimen or aliquot." ] ;
+    sh:property [
+        sh:path bmo:fromCustodian ; sh:minCount 1 ; sh:maxCount 1 ;
+        sh:message "A transfer event must identify the releasing custodian." ] ;
+    sh:property [
+        sh:path bmo:toCustodian ; sh:minCount 1 ; sh:maxCount 1 ;
+        sh:message "A transfer event must identify the receiving custodian." ] ;
+    sh:property [
+        sh:path bmo:eventTime ; sh:minCount 1 ; sh:maxCount 1 ; sh:datatype xsd:dateTime ;
+        sh:message "A transfer event must record its timestamp." ] ;
+    sh:property [
+        sh:path bmo:eventAgent ; sh:minCount 1 ;
+        sh:message "A transfer event must identify the responsible agent." ] ;
+    sh:property [
+        sh:path bmo:previousCustodyEvent ; sh:maxCount 1 ;
+        sh:message "A custody event may name at most one immediate predecessor." ] .
+
+bmo:ReceiptEventShape a sh:NodeShape ;
+    sh:targetClass bmo:ReceiptEvent ;
+    sh:property [
+        sh:path bmo:custodySubject ; sh:minCount 1 ; sh:maxCount 1 ;
+        sh:message "A receipt event must identify exactly one specimen or aliquot." ] ;
+    sh:property [
+        sh:path bmo:toCustodian ; sh:minCount 1 ; sh:maxCount 1 ;
+        sh:message "A receipt event must identify the receiving custodian." ] ;
+    sh:property [
+        sh:path bmo:eventTime ; sh:minCount 1 ; sh:maxCount 1 ; sh:datatype xsd:dateTime ;
+        sh:message "A receipt event must record its timestamp." ] ;
+    sh:property [
+        sh:path bmo:eventAgent ; sh:minCount 1 ;
+        sh:message "A receipt event must identify the responsible receiving agent." ] .
+
+bmo:AliquotEventShape a sh:NodeShape ;
+    sh:targetClass bmo:AliquotEvent ;
+    sh:property [
+        sh:path bmo:sourceSpecimen ; sh:minCount 1 ; sh:maxCount 1 ;
+        sh:message "An aliquot event must identify the source specimen." ] ;
+    sh:property [
+        sh:path bmo:producedAliquot ; sh:minCount 1 ;
+        sh:message "An aliquot event must identify at least one produced aliquot." ] ;
+    sh:property [
+        sh:path bmo:eventTime ; sh:minCount 1 ; sh:maxCount 1 ; sh:datatype xsd:dateTime ;
+        sh:message "An aliquot event must record its timestamp." ] .
+
+# --- Diagnostic procedure and result ---------------------------------------
+
+bmo:DiagnosticProcedureShape a sh:NodeShape ;
+    sh:targetClass bmo:DiagnosticProcedure ;
+    sh:property [
+        sh:path bmo:usedSpecimen ; sh:minCount 1 ; sh:maxCount 1 ;
+        sh:message "A diagnostic procedure must use exactly one specimen or aliquot input. A rerun or second specimen is a separate procedure event." ] ;
+    sh:property [
+        sh:path bmo:producedResult ; sh:minCount 1 ; sh:maxCount 1 ;
+        sh:message "A diagnostic procedure must produce exactly one result datum." ] .
+
+bmo:DiagnosticResultShape a sh:NodeShape ;
+    sh:targetClass bmo:DiagnosticResult ;
+    sh:property [
+        sh:path bmo:resultStatus ; sh:minCount 1 ; sh:maxCount 1 ;
+        sh:message "A diagnostic result must have exactly one result status." ] ;
+    sh:property [
+        sh:path bmo:producedByProcedure ; sh:minCount 1 ; sh:maxCount 1 ;
+        sh:message "A diagnostic result must identify the procedure that generated it." ] .
+
+bmo:DiagnosticProcedureProfileShape a sh:NodeShape ;
+    sh:targetClass bmo:DiagnosticProcedureProfile ;
+    sh:property [
+        sh:path bmo:sensitivity ; sh:maxCount 1 ; sh:datatype xsd:decimal ;
+        sh:minInclusive 0.0 ; sh:maxInclusive 1.0 ;
+        sh:message "Sensitivity, when present, must be a decimal in [0,1]." ] ;
+    sh:property [
+        sh:path bmo:specificity ; sh:maxCount 1 ; sh:datatype xsd:decimal ;
+        sh:minInclusive 0.0 ; sh:maxInclusive 1.0 ;
+        sh:message "Specificity, when present, must be a decimal in [0,1]." ] .
+
+# --- Adaptive observation requirements -------------------------------------
 
 bmo:ObservationRequirementShape a sh:NodeShape ;
     sh:targetClass bmo:ObservationRequirement ;
     sh:property [
         sh:path up:discriminates ; sh:minCount 1 ;
-        sh:message "A requirement must state what it discriminates. A request with no diagnostic purpose is a fixed protocol step, not an adaptive one." ] .
+        sh:message "An observation requirement must state which candidates it is intended to discriminate." ] .
+
+# --- Crosswalks: mappings may legitimately fail ----------------------------
+
+bmo:ReportingCrosswalkShape a sh:NodeShape ;
+    sh:targetClass bmo:ReportingCrosswalk ;
+    sh:property [
+        sh:path up:crosswalkFrom ; sh:minCount 1 ; sh:maxCount 1 ;
+        sh:message "A reporting crosswalk must name exactly one internal source concept." ] ;
+    sh:property [
+        sh:path bmo:targetScheme ; sh:minCount 1 ; sh:maxCount 1 ;
+        sh:message "A reporting crosswalk must state the external target scheme." ] ;
+    sh:property [
+        sh:path up:fidelity ; sh:minCount 1 ; sh:maxCount 1 ;
+        sh:message "A reporting crosswalk must state fidelity: exact, broader, narrower, partial, or none." ] ;
+    sh:sparql [
+        sh:message "A mapped crosswalk (fidelity other than none) must name exactly one crosswalkTo target term." ;
+        sh:select """
+            PREFIX up: <https://example.org/upper/>
+            SELECT $this WHERE {
+              $this up:fidelity ?f .
+              FILTER(?f != up:NoMapping)
+              FILTER NOT EXISTS { $this up:crosswalkTo ?target }
+            }"""
+    ] ;
+    sh:sparql [
+        sh:message "A NoMapping crosswalk records that no defensible target exists and therefore must not name crosswalkTo." ;
+        sh:select """
+            PREFIX up: <https://example.org/upper/>
+            SELECT $this WHERE {
+              $this up:fidelity up:NoMapping ;
+                    up:crosswalkTo ?target .
+            }"""
+    ] .
