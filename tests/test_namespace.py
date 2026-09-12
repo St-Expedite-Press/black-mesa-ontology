@@ -13,7 +13,10 @@ UPPER_ONTOLOGY = rdflib.URIRef("https://w3id.org/black-mesa/upper")
 CC_BY_4 = rdflib.URIRef("https://creativecommons.org/licenses/by/4.0/")
 
 SCAN_DIRS = ("schema", "upper", "examples", "reference", "rules", "tests", "tools")
-FORBIDDEN = ("https://example.org/bmo/", "https://example.org/upper/")
+FORBIDDEN = (
+    "https://" + "example.org/bmo/",
+    "https://" + "example.org/upper/",
+)
 
 
 def test_no_deprecated_local_namespace_remains():
