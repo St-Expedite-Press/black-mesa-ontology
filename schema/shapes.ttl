@@ -1,10 +1,11 @@
 @prefix sh:   <http://www.w3.org/ns/shacl#> .
-@prefix bmo:  <https://example.org/bmo/> .
-@prefix up:   <https://example.org/upper/> .
+@prefix bmo:  <https://w3id.org/black-mesa/bmo/> .
+@prefix up:   <https://w3id.org/black-mesa/upper/> .
 @prefix prov: <http://www.w3.org/ns/prov#> .
 @prefix owl:  <http://www.w3.org/2002/07/owl#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+@prefix dct:  <http://purl.org/dc/terms/> .
 
 # ===========================================================================
 # Black Mesa v0.3 SHACL constraints.
@@ -22,7 +23,7 @@ bmo:UpperAnchorShape a sh:NodeShape ;
             PREFIX owl:  <http://www.w3.org/2002/07/owl#>
             SELECT $this WHERE {
               $this a owl:Class .
-              FILTER(STRSTARTS(STR($this), "https://example.org/bmo/"))
+              FILTER(STRSTARTS(STR($this), "https://w3id.org/black-mesa/bmo/"))
               FILTER NOT EXISTS {
                 $this rdfs:subClassOf+ ?anchor .
                 FILTER(STRSTARTS(STR(?anchor), "http://purl.obolibrary.org/obo/BFO_"))
@@ -46,12 +47,12 @@ bmo:NoTiledImageryShape a sh:NodeShape ;
         sh:message "GRAPH BOUNDARY VIOLATION: imagery and dense sensor arrays must be referenced, not expanded into per-pixel, per-tile, or per-band triples." ;
         sh:prefixes bmo: ;
         sh:select """
-            PREFIX bmo: <https://example.org/bmo/>
+            PREFIX bmo: <https://w3id.org/black-mesa/bmo/>
             SELECT $this WHERE {
               $this ?p ?o .
-              FILTER(STRSTARTS(STR(?p), "https://example.org/bmo/tile")
-                  || STRSTARTS(STR(?p), "https://example.org/bmo/pixel")
-                  || STRSTARTS(STR(?p), "https://example.org/bmo/band"))
+              FILTER(STRSTARTS(STR(?p), "https://w3id.org/black-mesa/bmo/tile")
+                  || STRSTARTS(STR(?p), "https://w3id.org/black-mesa/bmo/pixel")
+                  || STRSTARTS(STR(?p), "https://w3id.org/black-mesa/bmo/band"))
             }""" ] .
 
 # --- Sensor indication is not a diagnosis ---------------------------------
@@ -283,7 +284,7 @@ bmo:ReportingCrosswalkShape a sh:NodeShape ;
     sh:sparql [
         sh:message "A mapped crosswalk (fidelity other than none) must name exactly one crosswalkTo target term." ;
         sh:select """
-            PREFIX up: <https://example.org/upper/>
+            PREFIX up: <https://w3id.org/black-mesa/upper/>
             SELECT $this WHERE {
               $this up:fidelity ?f .
               FILTER(?f != up:NoMapping)
@@ -293,9 +294,74 @@ bmo:ReportingCrosswalkShape a sh:NodeShape ;
     sh:sparql [
         sh:message "A NoMapping crosswalk records that no defensible target exists and therefore must not name crosswalkTo." ;
         sh:select """
-            PREFIX up: <https://example.org/upper/>
+            PREFIX up: <https://w3id.org/black-mesa/upper/>
             SELECT $this WHERE {
               $this up:fidelity up:NoMapping ;
                     up:crosswalkTo ?target .
+            }"""
+    ] .
+
+
+# --- Pilot pathosystem profiles --------------------------------------------
+
+bmo:PilotPathosystemShape a sh:NodeShape ;
+    sh:targetClass bmo:PilotPathosystem ;
+    sh:property [
+        sh:path bmo:hostTaxon ; sh:minCount 1 ; sh:maxCount 1 ;
+        sh:message "A pilot pathosystem must identify exactly one canonical host taxon." ] ;
+    sh:property [
+        sh:path bmo:pathogenTaxon ; sh:minCount 1 ; sh:maxCount 1 ;
+        sh:message "A pilot pathosystem must identify exactly one canonical pathogen taxon." ] ;
+    sh:property [
+        sh:path bmo:scenarioRole ; sh:minCount 1 ; sh:maxCount 1 ;
+        sh:message "A pilot pathosystem must state whether it is an operational pilot or regulatory stress test." ] .
+
+# --- Jurisdictional rule registry ------------------------------------------
+
+bmo:ReportingRuleShape a sh:NodeShape ;
+    sh:targetClass bmo:ReportingRule ;
+    sh:property [
+        sh:path bmo:ruleIdentifier ; sh:minCount 1 ; sh:maxCount 1 ;
+        sh:message "Every reporting rule must have one stable rule identifier." ] ;
+    sh:property [
+        sh:path bmo:appliesInJurisdiction ; sh:minCount 1 ;
+        sh:message "Every reporting rule must identify at least one jurisdiction in which it applies." ] ;
+    sh:property [
+        sh:path bmo:regulatoryAuthority ; sh:minCount 1 ; sh:maxCount 1 ;
+        sh:message "Every jurisdictional reporting rule must identify the regulatory authority responsible for the source rule." ] ;
+    sh:property [
+        sh:path dct:source ; sh:minCount 1 ;
+        sh:message "Every jurisdictional reporting rule must cite at least one authoritative source." ] ;
+    sh:property [
+        sh:path bmo:ruleReviewStatus ; sh:minCount 1 ; sh:maxCount 1 ;
+        sh:message "Every reporting rule must state its legal/regulatory review status." ] ;
+    sh:property [
+        sh:path bmo:requiresHumanReview ; sh:minCount 1 ; sh:maxCount 1 ; sh:datatype xsd:boolean ;
+        sh:message "Every reporting rule must explicitly state whether human review is required." ] ;
+    sh:sparql [
+        sh:message "A draft rule must require human review; draft legal interpretations are never machine-executable external-notification authority." ;
+        sh:select """
+            PREFIX bmo: <https://w3id.org/black-mesa/bmo/>
+            SELECT $this WHERE {
+              $this bmo:ruleReviewStatus bmo:DraftRequiresLegalRegulatoryReview ;
+                    bmo:requiresHumanReview false .
+            }"""
+    ] ;
+    sh:sparql [
+        sh:message "A draft rule must carry a legal review note identifying what still requires verification." ;
+        sh:select """
+            PREFIX bmo: <https://w3id.org/black-mesa/bmo/>
+            SELECT $this WHERE {
+              $this bmo:ruleReviewStatus bmo:DraftRequiresLegalRegulatoryReview .
+              FILTER NOT EXISTS { $this bmo:legalReviewNote ?note }
+            }"""
+    ] ;
+    sh:sparql [
+        sh:message "An approved rule must record an effective-from date." ;
+        sh:select """
+            PREFIX bmo: <https://w3id.org/black-mesa/bmo/>
+            SELECT $this WHERE {
+              $this bmo:ruleReviewStatus bmo:ApprovedRule .
+              FILTER NOT EXISTS { $this bmo:effectiveFrom ?date }
             }"""
     ] .
