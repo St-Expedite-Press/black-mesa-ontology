@@ -47,8 +47,8 @@ Adopt existing uncertainty vocabularies rather than authoring one — the NPDN f
 ```
 sources/          converted programme documents (page anchors preserved)
 schema/           .ttl files - entities, provenance, crosswalks, shapes
-docs/             working notes, citations register
-reports/          rendered PDFs
+docs/             the paper, plus generated schema reference and diagrams
+reports/          rendered PDFs (gitignored build output)
 visualizations/   generated graph diagrams
 notebooks/ src/   analysis and reusable code
 ```
@@ -96,6 +96,11 @@ All 20 classes in `bmo:` are anchored. `Detection`, `AssayResult`, `SpectralAnom
 .venv/Scripts/python.exe tools/visualize_ontology.py \
     upper/upper-core.ttl projects/black-mesa-ontology/schema/*.ttl \
     -o projects/black-mesa-ontology/visualizations/bmo-core
+
+# regenerate the Markdown schema documentation (do this after any schema change)
+.venv/Scripts/python.exe tools/schema_docs.py \
+    --schema projects/black-mesa-ontology/schema \
+    --out projects/black-mesa-ontology/docs
 
 # lint and render
 .venv/Scripts/python.exe tools/lint_docs.py projects/black-mesa-ontology/docs/<doc>.md

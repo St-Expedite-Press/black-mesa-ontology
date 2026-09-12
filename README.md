@@ -38,15 +38,35 @@ a property stamped on a field. It must resolve back to the flight, the
 collection and the assay that produced it, and it records the rule set version
 in force when it was made.
 
+## Documentation
+
+All Markdown, and the reference is generated from the Turtle so it cannot drift
+from the schema.
+
+| Document | What it is |
+|---|---|
+| [`docs/schema-reference.md`](docs/schema-reference.md) | **Generated.** Every class and property, grouped by what kind of thing it is, with its full description and the SHACL constraints it is subject to |
+| [`docs/class-diagram.md`](docs/class-diagram.md) | **Generated.** Mermaid diagrams - anchoring, subclass hierarchy, relations - rendered by GitHub, no image files |
+| [`docs/detection-ontology-v0.2.md`](docs/detection-ontology-v0.2.md) | The paper: the detection chain, the confidence tier that does not exist, the boundary of the graph, and the case against the scope decision |
+
+Regenerate the reference after any schema change:
+
+```bash
+python tools/schema_docs.py --schema schema --out docs
+```
+
+There are no PDFs. Markdown renders here, diffs line by line, deep-links, and
+can be commented on a sentence at a time; a binary does none of that.
+
 ## Layout
 
 ```
 schema/     bmo-core.ttl and shapes.ttl
 upper/      the shared BFO-anchored upper module
 vendor/     BFO 2.0, redistributed unmodified
-tools/      validate, visualise
+tools/      validate, visualise, generate docs
 tests/      pytest, including adversarial SHACL fixtures
-docs/       the detection ontology paper
+docs/       everything above
 ```
 
 ## Verify it
