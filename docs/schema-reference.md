@@ -229,3 +229,50 @@ The following v0.2 terms remain only to make migration explicit:
 - `PreSymptomatic` → deprecated; use `SensorIndicationAssertion` + `SensorIndicationStage`
 
 Do not create new data using the deprecated terms.
+
+
+## v0.4 persistent identity
+
+- Ontology IRI: `https://w3id.org/black-mesa/bmo`
+- Term namespace: `https://w3id.org/black-mesa/bmo/`
+- Version IRI: `https://w3id.org/black-mesa/bmo/releases/0.4.0`
+- Upper ontology IRI: `https://w3id.org/black-mesa/upper`
+- Ontology license: CC BY 4.0
+
+## Pilot pathosystem profile
+
+| Term | Meaning |
+|---|---|
+| `PilotPathosystem` | Reference-data profile selecting one host/pathogen pair for a pilot or stress test. |
+| `PilotScenarioRole` | Role of the profile in the program. |
+| `OperationalPilot` | End-to-end operational evidence workflow pilot. |
+| `RegulatoryStressTest` | Scenario selected primarily to exercise regulatory/reporting behavior. |
+| `hostTaxon` | Canonical external host taxon IRI. |
+| `pathogenTaxon` | Canonical external pathogen taxon IRI. |
+| `scenarioRole` | Operational-pilot or regulatory-stress-test role. |
+
+## Reporting-rule governance additions
+
+| Term | Meaning |
+|---|---|
+| `RuleReviewStatus` | Governance status of a jurisdictional rule record. |
+| `DraftRequiresLegalRegulatoryReview` | Non-operative draft; cannot authorize external action. |
+| `ApprovedRule` | Rule record reviewed for operational decision support. |
+| `SupersededRule` | Historical rule retained for interpretation. |
+| `RegulatoryActionType` | Controlled action concept such as regulatory evaluation or external notification. |
+| `ruleIdentifier` | Stable identifier for the rule record. |
+| `regulatoryAuthority` | Responsible external authority. |
+| `effectiveFrom` / `effectiveUntil` | Temporal validity after verification. |
+| `regulatedTaxon` / `regulatedHost` / `regulatedCommodity` / `regulatedArea` | Scope of the verified rule. |
+| `triggerEvidenceStage` | Evidence stage capable of activating the reviewed rule. |
+| `triggerDiagnosticDisposition` | Diagnostic disposition capable of activating the reviewed rule. |
+| `requiredConfirmationMethod` | Confirmation method required by the reviewed rule. |
+| `requiresHumanReview` | Human-approval gate. |
+| `requiredAction` | Action required under the reviewed rule. |
+| `notificationRecipient` / `notificationDeadline` | Verified reporting destination and timing. |
+| `movementRestrictionRequired` | Whether movement restriction is part of the reviewed rule. |
+| `supersedesRule` | Historical-version relation. |
+| `ruleReviewStatus` | Current governance state. |
+| `legalReviewNote` | Outstanding interpretation questions. |
+
+SHACL requires all jurisdictional rule records to identify jurisdiction, authority, authoritative source, review status, and the human-review setting. Drafts must require human review and carry a review note. Approved rules must record an effective-from date.
