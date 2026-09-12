@@ -224,3 +224,23 @@ flowchart TB
 ~~~
 
 The shared upper module exists to make category mistakes visible. A diagnostic result, for example, is information about a physical specimen; it is not itself material.
+
+
+## 10. Pilot and regulatory governance additions
+
+~~~mermaid
+classDiagram
+    class PilotPathosystem
+    class PilotScenarioRole
+    class ReportingRule
+    class RuleReviewStatus
+    class RegulatoryActionType
+    class OperationalJurisdiction
+
+    PilotPathosystem --> PilotScenarioRole : scenarioRole
+    ReportingRule --> OperationalJurisdiction : appliesInJurisdiction
+    ReportingRule --> RuleReviewStatus : ruleReviewStatus
+    ReportingRule --> RegulatoryActionType : requiredAction
+~~~
+
+Pilot pathosystems are reference-data profiles. Reporting rules are versioned governance records; state names, crops, and pathogens are not turned into subclasses.
