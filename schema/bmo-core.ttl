@@ -702,7 +702,8 @@ bmo:PilotPathosystem a owl:Class ;
 
 bmo:PilotScenarioRole a owl:Class ;
     rdfs:subClassOf up:ConceptualUnit ;
-    rdfs:label "Pilot scenario role"@en .
+    rdfs:label "Pilot scenario role"@en ;
+    rdfs:comment "Controlled role describing whether a pathosystem profile is intended for operational evidence-chain testing or primarily for regulatory stress testing."@en .
 
 bmo:OperationalPilot a bmo:PilotScenarioRole ;
     rdfs:label "operational pilot"@en ;
@@ -745,7 +746,8 @@ bmo:SupersededRule a bmo:RuleReviewStatus ;
 
 bmo:RegulatoryActionType a owl:Class ;
     rdfs:subClassOf up:ConceptualUnit ;
-    rdfs:label "regulatory action type"@en .
+    rdfs:label "regulatory action type"@en ;
+    rdfs:comment "Controlled action category used by reviewed reporting rules to describe the kind of follow-up a rule may require."@en .
 
 bmo:InternalInvestigationOnly a bmo:RegulatoryActionType ;
     rdfs:label "internal investigation only"@en .
