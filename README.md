@@ -10,7 +10,7 @@ The ontology is **sensor-agnostic**. Drone flight and spectral imagery are expec
 
 This is the documented operational ontology and validation suite for the Phase 1 detection/evidence chain.
 
-v0.3 design commitments:
+v0.4 design commitments:
 
 - Observation, anomaly, hypothesis, diagnostic determination, regulatory determination, and alert are different objects.
 - A **sensor indication is not a diagnosis** and cannot assert pathogen presence.
@@ -22,6 +22,10 @@ v0.3 design commitments:
 - Raw imagery and dense sensor arrays stay outside the RDF graph and are referenced by URI + checksum.
 - Crops, pathogens, sensors, methods, and other reference vocabularies should use external canonical identifiers rather than being reinvented locally.
 - Initial operational jurisdictions are Arkansas, Louisiana, Missouri, Oklahoma, and Texas, represented as data rather than ontology subclasses.
+- Canonical ontology terms now use the persistent `https://w3id.org/black-mesa/` identifier space.
+- Ontology/semantic content is CC BY 4.0; software/tooling is Apache-2.0.
+- Four initial pathosystem profiles are now instantiated as reference data: rice blast, soybean frogeye leaf spot, wheat stripe rust, and Karnal bunt as a regulatory stress test.
+- Five state regulatory-rule intake records exist as non-operative drafts requiring legal/regulatory review and human approval.
 
 ## Read this first
 
@@ -31,6 +35,9 @@ If you are not an ontology engineer:
 2. [Architecture](docs/architecture.md) — how the Black Mesa product is represented end to end, with workflow diagrams.
 3. [Canonical workflow](examples/canonical-workflow.ttl) — a worked survey-to-confirmed-detection record.
 4. [Negative survey](examples/negative-survey.ttl) — why "surveyed with no anomaly" is not the same thing as "pathogen not detected."
+5. [Pilot pathosystems](reference/pilot-pathosystems.ttl) — the initial crop/pathogen profiles.
+6. [Rule registry guide](rules/README.md) — how state rule records are governed and why drafts cannot authorize external action.
+7. [Persistent identifier policy](docs/persistence.md) — canonical IRIs and W3ID registration requirements.
 
 For ontology work:
 
@@ -39,7 +46,7 @@ For ontology work:
 - [SHACL constraints](schema/shapes.ttl)
 - [Schema reference](docs/schema-reference.md)
 - [Class diagram](docs/class-diagram.md)
-- [v0.3 design note](docs/detection-ontology-v0.3.md)
+- [v0.4 design note](docs/detection-ontology-v0.4.md)
 
 ## The workflow in one picture
 
@@ -111,6 +118,17 @@ examples/
     canonical-workflow.ttl
     negative-survey.ttl
 
+reference/
+    pilot-pathosystems.ttl
+
+rules/
+    README.md
+    US-AR/draft-rules.ttl
+    US-LA/draft-rules.ttl
+    US-MO/draft-rules.ttl
+    US-OK/draft-rules.ttl
+    US-TX/draft-rules.ttl
+
 tests/
     fixtures/bmo-violations.ttl
     test_detection_shacl.py
@@ -124,7 +142,8 @@ tools/
 docs/
     team-guide.md
     architecture.md
-    detection-ontology-v0.3.md
+    persistence.md
+    detection-ontology-v0.4.md
     schema-reference.md
     class-diagram.md
 ~~~
@@ -154,13 +173,25 @@ Phase 1 is the **evidence chain**, not an exhaustive crop/pathogen taxonomy and 
 
 The first deployment region is the Arkansas–Louisiana–Missouri–Oklahoma–Texas cluster. The core schema must remain portable beyond it.
 
-Near-term work after v0.3:
+Near-term work after v0.4:
 
-- bind real crop and pathogen identifiers for pilot use cases;
+- run the four pilot pathosystems against real sensor, field, and diagnostic workflows;
 - define actual sensor/model records once hardware and models are selected;
 - add validated diagnostic method profiles;
-- encode jurisdiction-specific reporting rules separately from scientific detections;
+- complete legal/regulatory review of the five draft state rule intakes before any rule is promoted to `ApprovedRule`;
 - add environmental context and spread inference without contaminating the core evidence model.
+
+## Persistent namespace and licensing
+
+Canonical ontology IRI: `https://w3id.org/black-mesa/bmo`
+
+Canonical term namespace: `https://w3id.org/black-mesa/bmo/`
+
+Version IRI: `https://w3id.org/black-mesa/bmo/releases/0.4.0`
+
+The W3ID redirect itself still needs to be registered before these identifiers are operationally dereferenceable; see [docs/persistence.md](docs/persistence.md).
+
+Semantic content is licensed under CC BY 4.0. Executable software/tooling is licensed under Apache-2.0. See [LICENSE](LICENSE).
 
 ## Publishing note
 
