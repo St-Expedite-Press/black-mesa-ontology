@@ -17,8 +17,8 @@ from pathlib import Path
 import rdflib
 from rdflib import RDF, RDFS, OWL
 
-BMO = rdflib.Namespace("https://example.org/bmo/")
-UP = rdflib.Namespace("https://example.org/upper/")
+BMO = rdflib.Namespace("https://w3id.org/black-mesa/bmo/")
+UP = rdflib.Namespace("https://w3id.org/black-mesa/upper/")
 
 
 def load_schema(schema_dir: Path) -> rdflib.Graph:
