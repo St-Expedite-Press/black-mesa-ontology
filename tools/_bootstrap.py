@@ -1,6 +1,6 @@
 """Put src/ on the import path, and make the console able to print the output.
 
-The tools are run as scripts rather than installed, so `import blackmesa` needs
+The tools are run as scripts rather than installed, so `import workbench` needs
 src/ on sys.path. Each tool does `import _bootstrap  # noqa: F401` before
 importing the package. Installing the project would remove the need for this;
 the explicit import is preferred over an install step that must be remembered.

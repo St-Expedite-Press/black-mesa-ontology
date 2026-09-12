@@ -31,7 +31,7 @@ import rdflib
 from rdflib import RDF, RDFS, OWL
 
 import _bootstrap  # noqa: F401
-from blackmesa.paths import REPO_ROOT, relative
+from workbench.paths import REPO_ROOT, relative
 
 #: owl:imports IRIs resolved from the repository instead of over the network.
 #:

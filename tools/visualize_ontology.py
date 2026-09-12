@@ -8,7 +8,7 @@
 
 Usage:
     python tools/visualize_ontology.py path/to/schema.ttl [path2.ttl ...] \
-        -o projects/black-mesa-ontology/visualizations/schema
+        -o visualizations/schema
 
 Produces <out>.html (interactive) and <out>.svg / <out>.pdf (class diagram),
 provided the `dot` executable is on PATH (installed via winget/Graphviz).

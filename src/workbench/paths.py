@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-# src/blackmesa/paths.py -> src/blackmesa -> src -> repo root
+# src/workbench/paths.py -> src/workbench -> src -> repo root
 REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 
 PROJECTS_DIR = REPO_ROOT / "projects"
@@ -21,6 +21,26 @@ TESTS_DIR = REPO_ROOT / "tests"
 INPUT_DIRS = {"sources", "standards"}
 OUTPUT_DIRS = {"reports", "visualizations"}
 NON_DOCUMENT_DIRS = INPUT_DIRS | OUTPUT_DIRS | {"__pycache__", ".venv"}
+
+
+#: A published repository names the one project it contains in this file.
+#: It is how the flat layout is identified without this module hardcoding any
+#: project name - which matters because the module is vendored into a
+#: repository that must name no programme. Written by tools/publish_repo.py.
+PROJECT_MARKER = ".project"
+
+
+def project_id() -> str | None:
+    """The project this repository contains, if it contains exactly one.
+
+    None in the monorepo, where projects/ holds several and the question has no
+    single answer.
+    """
+    marker = REPO_ROOT / PROJECT_MARKER
+    if marker.is_file():
+        name = marker.read_text(encoding="utf-8").strip()
+        return name or None
+    return None
 
 
 def schema_dir(project: str) -> Path | None:
@@ -40,14 +60,8 @@ def schema_dir(project: str) -> Path | None:
     if nested.is_dir():
         return nested
     flat = REPO_ROOT / "schema"
-    # In a published repository the flat schema/ belongs to the one project
-    # that repository is for. Distinguish it by a file only that project has.
-    if flat.is_dir():
-        markers = {"guis-ecosystem-typology": "eios-core.ttl",
-                   "black-mesa-ontology": "bmo-core.ttl"}
-        marker = markers.get(project)
-        if marker and (flat / marker).is_file():
-            return flat
+    if flat.is_dir() and project_id() == project:
+        return flat
     return None
 
 

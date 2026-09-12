@@ -65,8 +65,10 @@ EXPEDITE = Palette(
     paper="#efe6cf",
 )
 
-#: Defense-technical register (Black Mesa). Bone ground, cold near-black,
+#: The `mesa` register: defense-technical. Bone ground, cold near-black,
 #: one institutional green. Documented in templates/MESA-GUIDE.md.
+#: Named for the register, not for a project - this module is vendored into a
+#: published repository that must name no programme.
 MESA = Palette(
     ink="#14161a",
     sub="#4a4f57",
