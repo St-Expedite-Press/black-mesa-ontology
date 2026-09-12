@@ -11,6 +11,7 @@ on:
       - "vendor/**"
       - "tests/**"
       - "tools/**"
+      - "src/**"
       - "examples/**"
       - ".github/workflows/ontology-ci.yml"
   pull_request:
