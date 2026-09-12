@@ -1,5 +1,5 @@
-@prefix bmo:  <https://example.org/bmo/> .
-@prefix up:   <https://example.org/upper/> .
+@prefix bmo:  <https://w3id.org/black-mesa/bmo/> .
+@prefix up:   <https://w3id.org/black-mesa/upper/> .
 @prefix obo:  <http://purl.obolibrary.org/obo/> .
 @prefix owl:  <http://www.w3.org/2002/07/owl#> .
 @prefix rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
@@ -34,10 +34,13 @@
 # 7. Raw imagery stays outside the RDF graph and is referenced by URI/checksum.
 # ===========================================================================
 
-bmo: a owl:Ontology ;
+<https://w3id.org/black-mesa/bmo> a owl:Ontology ;
     dct:title "Black Mesa sensor-agnostic detection core"@en ;
-    owl:versionInfo "0.3" ;
-    owl:imports <https://example.org/upper/> ;
+    dct:creator <https://github.com/St-Expedite-Press> ;
+    dct:license <https://creativecommons.org/licenses/by/4.0/> ;
+    owl:versionIRI <https://w3id.org/black-mesa/bmo/releases/0.4.0> ;
+    owl:versionInfo "0.4.0" ;
+    owl:imports <https://w3id.org/black-mesa/upper> ;
     rdfs:comment "Conceptual and operational schema for sensor-agnostic pre-symptomatic agricultural biosecurity detection. The graph represents evidence, provenance, hypotheses, custody, diagnostic determinations, and reporting semantics; it does not store raw imagery or replace external taxonomies."@en .
 
 # ===========================================================================
@@ -689,7 +692,154 @@ bmo:targetScheme a owl:ObjectProperty ;
     rdfs:domain bmo:ReportingCrosswalk ; rdfs:range bmo:ExternalReportingScheme .
 
 # ===========================================================================
-# 9. COMPATIBILITY ALIASES FROM v0.2
+# 9. PILOT PATHOSYSTEM PROFILES AND REGULATORY-RULE METADATA
+# ===========================================================================
+
+bmo:PilotPathosystem a owl:Class ;
+    rdfs:subClassOf up:InformationArtifact ;
+    rdfs:label "Pilot pathosystem profile"@en ;
+    rdfs:comment "A versionable profile selecting a host/pathogen pair for an operational pilot or regulatory stress test. The host and pathogen are referenced by canonical external taxon IRIs rather than redefined locally."@en .
+
+bmo:PilotScenarioRole a owl:Class ;
+    rdfs:subClassOf up:ConceptualUnit ;
+    rdfs:label "Pilot scenario role"@en .
+
+bmo:OperationalPilot a bmo:PilotScenarioRole ;
+    rdfs:label "operational pilot"@en ;
+    rdfs:comment "A pathosystem selected to exercise the end-to-end sensing, sampling, diagnostic, and evidence workflow."@en .
+
+bmo:RegulatoryStressTest a bmo:PilotScenarioRole ;
+    rdfs:label "regulatory stress test"@en ;
+    rdfs:comment "A pathosystem selected primarily to exercise quarantine, regulatory evaluation, and reporting boundaries."@en .
+
+bmo:hostTaxon a owl:ObjectProperty ;
+    rdfs:label "host taxon"@en ;
+    rdfs:domain bmo:PilotPathosystem ; rdfs:range rdfs:Resource ;
+    rdfs:comment "Canonical external identifier for the crop or host taxon represented by a pilot profile."@en .
+
+bmo:pathogenTaxon a owl:ObjectProperty ;
+    rdfs:label "pathogen taxon"@en ;
+    rdfs:domain bmo:PilotPathosystem ; rdfs:range rdfs:Resource ;
+    rdfs:comment "Canonical external identifier for the pathogen represented by a pilot profile."@en .
+
+bmo:scenarioRole a owl:ObjectProperty ;
+    rdfs:label "scenario role"@en ;
+    rdfs:domain bmo:PilotPathosystem ; rdfs:range bmo:PilotScenarioRole .
+
+bmo:RuleReviewStatus a owl:Class ;
+    rdfs:subClassOf up:ConceptualUnit ;
+    rdfs:label "rule review status"@en ;
+    rdfs:comment "Governance status for a jurisdictional reporting rule. Draft rules are non-operative until reviewed and approved by an authorized legal/regulatory reviewer."@en .
+
+bmo:DraftRequiresLegalRegulatoryReview a bmo:RuleReviewStatus ;
+    rdfs:label "DRAFT — requires legal/regulatory review"@en ;
+    rdfs:comment "The record is an intake scaffold only. It must not be treated as an operative legal rule or used for autonomous external notification."@en .
+
+bmo:ApprovedRule a bmo:RuleReviewStatus ;
+    rdfs:label "approved rule"@en ;
+    rdfs:comment "The record has completed the project's designated legal/regulatory review and may be used by the decision-support layer subject to its effective dates."@en .
+
+bmo:SupersededRule a bmo:RuleReviewStatus ;
+    rdfs:label "superseded rule"@en ;
+    rdfs:comment "The rule record is retained for historical interpretation but is no longer the current operational rule."@en .
+
+bmo:RegulatoryActionType a owl:Class ;
+    rdfs:subClassOf up:ConceptualUnit ;
+    rdfs:label "regulatory action type"@en .
+
+bmo:InternalInvestigationOnly a bmo:RegulatoryActionType ;
+    rdfs:label "internal investigation only"@en .
+bmo:PathologistReview a bmo:RegulatoryActionType ;
+    rdfs:label "plant pathologist review"@en .
+bmo:RegulatoryEvaluation a bmo:RegulatoryActionType ;
+    rdfs:label "regulatory evaluation"@en .
+bmo:ExternalNotification a bmo:RegulatoryActionType ;
+    rdfs:label "external notification"@en .
+bmo:MovementRestrictionEvaluation a bmo:RegulatoryActionType ;
+    rdfs:label "movement restriction evaluation"@en .
+bmo:QuarantineEvaluation a bmo:RegulatoryActionType ;
+    rdfs:label "quarantine evaluation"@en .
+
+bmo:ruleIdentifier a owl:DatatypeProperty ;
+    rdfs:label "rule identifier"@en ;
+    rdfs:domain bmo:ReportingRule ; rdfs:range xsd:string .
+
+bmo:regulatoryAuthority a owl:ObjectProperty ;
+    rdfs:label "regulatory authority"@en ;
+    rdfs:domain bmo:ReportingRule ; rdfs:range prov:Agent .
+
+bmo:effectiveFrom a owl:DatatypeProperty ;
+    rdfs:label "effective from"@en ;
+    rdfs:domain bmo:ReportingRule ; rdfs:range xsd:date .
+
+bmo:effectiveUntil a owl:DatatypeProperty ;
+    rdfs:label "effective until"@en ;
+    rdfs:domain bmo:ReportingRule ; rdfs:range xsd:date .
+
+bmo:regulatedTaxon a owl:ObjectProperty ;
+    rdfs:label "regulated taxon"@en ;
+    rdfs:domain bmo:ReportingRule ; rdfs:range rdfs:Resource .
+
+bmo:regulatedHost a owl:ObjectProperty ;
+    rdfs:label "regulated host"@en ;
+    rdfs:domain bmo:ReportingRule ; rdfs:range rdfs:Resource .
+
+bmo:regulatedCommodity a owl:ObjectProperty ;
+    rdfs:label "regulated commodity"@en ;
+    rdfs:domain bmo:ReportingRule ; rdfs:range rdfs:Resource .
+
+bmo:regulatedArea a owl:ObjectProperty ;
+    rdfs:label "regulated area"@en ;
+    rdfs:domain bmo:ReportingRule ; rdfs:range rdfs:Resource .
+
+bmo:triggerEvidenceStage a owl:ObjectProperty ;
+    rdfs:label "trigger evidence stage"@en ;
+    rdfs:domain bmo:ReportingRule ; rdfs:range bmo:EvidenceStage .
+
+bmo:triggerDiagnosticDisposition a owl:ObjectProperty ;
+    rdfs:label "trigger diagnostic disposition"@en ;
+    rdfs:domain bmo:ReportingRule ; rdfs:range bmo:DiagnosticDisposition .
+
+bmo:requiredConfirmationMethod a owl:ObjectProperty ;
+    rdfs:label "required confirmation method"@en ;
+    rdfs:domain bmo:ReportingRule ; rdfs:range rdfs:Resource .
+
+bmo:requiresHumanReview a owl:DatatypeProperty ;
+    rdfs:label "requires human review"@en ;
+    rdfs:domain bmo:ReportingRule ; rdfs:range xsd:boolean ;
+    rdfs:comment "Whether a human reviewer must approve the rule application before an external action is taken. Black Mesa Phase 1 policy requires human approval for external regulatory notification."@en .
+
+bmo:requiredAction a owl:ObjectProperty ;
+    rdfs:label "required action"@en ;
+    rdfs:domain bmo:ReportingRule ; rdfs:range bmo:RegulatoryActionType .
+
+bmo:notificationRecipient a owl:ObjectProperty ;
+    rdfs:label "notification recipient"@en ;
+    rdfs:domain bmo:ReportingRule ; rdfs:range prov:Agent .
+
+bmo:notificationDeadline a owl:DatatypeProperty ;
+    rdfs:label "notification deadline"@en ;
+    rdfs:domain bmo:ReportingRule ; rdfs:range xsd:duration .
+
+bmo:movementRestrictionRequired a owl:DatatypeProperty ;
+    rdfs:label "movement restriction required"@en ;
+    rdfs:domain bmo:ReportingRule ; rdfs:range xsd:boolean .
+
+bmo:supersedesRule a owl:ObjectProperty ;
+    rdfs:label "supersedes rule"@en ;
+    rdfs:domain bmo:ReportingRule ; rdfs:range bmo:ReportingRule .
+
+bmo:ruleReviewStatus a owl:ObjectProperty ;
+    rdfs:label "rule review status"@en ;
+    rdfs:domain bmo:ReportingRule ; rdfs:range bmo:RuleReviewStatus .
+
+bmo:legalReviewNote a owl:DatatypeProperty ;
+    rdfs:label "legal review note"@en ;
+    rdfs:domain bmo:ReportingRule ; rdfs:range xsd:string ;
+    rdfs:comment "Human-readable note recording unresolved legal or regulatory interpretation questions. It is not a substitute for source citation or formal review status."@en .
+
+# ===========================================================================
+# 10. COMPATIBILITY ALIASES FROM v0.2
 # ===========================================================================
 
 bmo:ConfidenceTier a owl:Class ;
