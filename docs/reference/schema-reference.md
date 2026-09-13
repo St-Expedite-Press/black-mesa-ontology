@@ -95,8 +95,8 @@ Structural reference generated directly from Turtle. For conceptual guidance, re
 | bmo:hasDiagnosticDisposition | up:Assertion | bmo:DiagnosticDisposition | _No description supplied._ |
 | bmo:hasEvidenceStage | up:Assertion | bmo:EvidenceStage | _No description supplied._ |
 | bmo:hasSpatialSupport | up:InformationArtifact | bmo:SpatialSupportDescription | Links an information artifact to the explicit description of the area, point, plant, row, or footprint over which it is warranted. |
-| bmo:hostedByPlatform | bmo:SurveyActivity | sosa:Platform | The physical platform carrying the sensor, such as a UAS, ground vehicle, fixed station, aircraft, or other host. |
 | bmo:hostTaxon | bmo:PilotPathosystem | rdfs:Resource | Canonical external identifier for the crop or host taxon represented by a pilot profile. |
+| bmo:hostedByPlatform | bmo:SurveyActivity | sosa:Platform | The physical platform carrying the sensor, such as a UAS, ground vehicle, fixed station, aircraft, or other host. |
 | bmo:hypothesizesAgent | bmo:DiagnosticHypothesis | rdfs:Resource | The organism, abiotic cause, or other agent proposed by a diagnostic hypothesis. Canonical external identifiers should be used where available. |
 | bmo:issuedBy | bmo:RegulatoryDetermination | prov:Agent | _No description supplied._ |
 | bmo:madeObservation | bmo:SurveyActivity | bmo:SensorObservation | _No description supplied._ |
@@ -130,8 +130,8 @@ Structural reference generated directly from Turtle. For conceptual guidance, re
 | bmo:targetScheme | bmo:ReportingCrosswalk | bmo:ExternalReportingScheme | _No description supplied._ |
 | bmo:toCustodian | bmo:CustodyEvent | prov:Agent | _No description supplied._ |
 | bmo:triggerDiagnosticDisposition | bmo:ReportingRule | bmo:DiagnosticDisposition | _No description supplied._ |
-| bmo:triggeredAlert | up:Assertion | bmo:Alert | Links a scientific or regulatory assertion to an alert. Alert issuance remains a separate policy decision. |
 | bmo:triggerEvidenceStage | bmo:ReportingRule | bmo:EvidenceStage | _No description supplied._ |
+| bmo:triggeredAlert | up:Assertion | bmo:Alert | Links a scientific or regulatory assertion to an alert. Alert issuance remains a separate policy decision. |
 | bmo:usedSpecimen | bmo:DiagnosticProcedure | bmo:Specimen | _No description supplied._ |
 | bmo:usesSensor | bmo:SurveyActivity | sosa:Sensor | The sensor used during a survey or observation. External sensor descriptions should use SOSA/SSN rather than a Black Mesa sensor taxonomy. |
 | bmo:validatedForHost | bmo:DiagnosticProcedureProfile | rdfs:Resource | _No description supplied._ |
