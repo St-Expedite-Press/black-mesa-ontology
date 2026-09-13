@@ -1,246 +1,285 @@
-# Black Mesa v0.3 class diagrams
+<!-- GENERATED FILE — DO NOT EDIT BY HAND. Rebuild with: python tools/schema_docs.py --schema schema --out docs/reference -->
 
-This page gives the review-oriented diagrams for the v0.3 ontology. The canonical declarations are in `schema/bmo-core.ttl`; `tools/schema_docs.py` can regenerate an exhaustive structural diagram after schema changes.
+# Class diagrams
 
-For the operational story, see [architecture.md](architecture.md).
+These diagrams are generated from the current Turtle schema. For product workflow and rationale, read [system architecture](../overview/system-architecture.md) and [evidence chain](../model/evidence-chain.md).
 
-## 1. Evidence pipeline
-
-~~~mermaid
-flowchart LR
-    SA[SurveyActivity] --> SO[SensorObservation]
-    SO --> OA[ObservedAnomaly]
-    OA --> SI[SensorIndicationAssertion]
-    SI --> DH[DiagnosticHypothesis]
-    DH --> CS[DiagnosticCandidateSet]
-    CS --> OR[ObservationRequirement / SamplingRecommendation]
-    OR --> SC[SampleCollection]
-    SC --> SP[Specimen]
-    SP --> DP[DiagnosticProcedure]
-    DP --> DR[DiagnosticResult]
-    DR --> DD[DiagnosticDetectionAssertion]
-    DD --> RD[RegulatoryDetermination]
-    RD --> RP[ReportingDecision]
-    RP --> AL[Alert]
-
-    OA -. "not equivalent" .-> DD
-    DD -. "not equivalent" .-> RD
-    RD -. "not equivalent" .-> AL
-~~~
-
-## 2. Sensor-agnostic class structure
+## Local subclass hierarchy
 
 ~~~mermaid
-classDiagram
-    class SurveyActivity
-    class Flight
-    class SensorObservation
-    class ObservedAnomaly
-    class SpectralAnomaly
-    class ImageryReference
-    class SpatialSupportDescription
-
-    SurveyActivity <|-- Flight
-    ObservedAnomaly <|-- SpectralAnomaly
-    SurveyActivity --> SensorObservation : madeObservation
-    SurveyActivity --> ObservedAnomaly : observedAnomaly
-    ObservedAnomaly --> SensorObservation : derivedFromObservation
-    ObservedAnomaly --> ImageryReference : referencesImagery
-    ObservedAnomaly --> SpatialSupportDescription : hasSpatialSupport
+graph TD
+  n_bmo_Alert["bmo:Alert"]
+  n_bmo_Aliquot["bmo:Aliquot"]
+  n_bmo_Specimen["bmo:Specimen"] --> n_bmo_Aliquot
+  n_bmo_AliquotEvent["bmo:AliquotEvent"]
+  n_bmo_CustodyEvent["bmo:CustodyEvent"] --> n_bmo_AliquotEvent
+  n_bmo_ApplicabilityStatus["bmo:ApplicabilityStatus"]
+  n_bmo_Assay["bmo:Assay"]
+  n_bmo_DiagnosticProcedure["bmo:DiagnosticProcedure"] --> n_bmo_Assay
+  n_bmo_AssayResult["bmo:AssayResult"]
+  n_bmo_DiagnosticResult["bmo:DiagnosticResult"] --> n_bmo_AssayResult
+  n_bmo_ConfidenceAssessment["bmo:ConfidenceAssessment"]
+  n_bmo_ConfidenceTier["bmo:ConfidenceTier"]
+  n_bmo_ConfirmedDetectionAssertion["bmo:ConfirmedDetectionAssertion"]
+  n_bmo_DiagnosticDetectionAssertion["bmo:DiagnosticDetectionAssertion"] --> n_bmo_ConfirmedDetectionAssertion
+  n_bmo_Container["bmo:Container"]
+  n_bmo_CustodyChain["bmo:CustodyChain"]
+  n_bmo_CustodyEvent["bmo:CustodyEvent"]
+  n_bmo_CustodyRecord["bmo:CustodyRecord"]
+  n_bmo_Detection["bmo:Detection"]
+  n_bmo_DiagnosticDetectionAssertion["bmo:DiagnosticDetectionAssertion"] --> n_bmo_Detection
+  n_bmo_DetectionLimit["bmo:DetectionLimit"]
+  n_bmo_DiagnosticCandidateSet["bmo:DiagnosticCandidateSet"]
+  n_bmo_DiagnosticDetectionAssertion["bmo:DiagnosticDetectionAssertion"]
+  n_bmo_DiagnosticDisposition["bmo:DiagnosticDisposition"]
+  n_bmo_DiagnosticHypothesis["bmo:DiagnosticHypothesis"]
+  n_bmo_DiagnosticProcedure["bmo:DiagnosticProcedure"]
+  n_bmo_DiagnosticProcedureProfile["bmo:DiagnosticProcedureProfile"]
+  n_bmo_DiagnosticResult["bmo:DiagnosticResult"]
+  n_bmo_DiagnosticResultStatus["bmo:DiagnosticResultStatus"]
+  n_bmo_EvidenceCompletenessLevel["bmo:EvidenceCompletenessLevel"]
+  n_bmo_EvidenceStage["bmo:EvidenceStage"]
+  n_bmo_EvidenceStrengthLevel["bmo:EvidenceStrengthLevel"]
+  n_bmo_ExternalReportingScheme["bmo:ExternalReportingScheme"]
+  n_bmo_ExternalReportingTerm["bmo:ExternalReportingTerm"]
+  n_bmo_Farm["bmo:Farm"]
+  n_bmo_Field["bmo:Field"]
+  n_bmo_Flight["bmo:Flight"]
+  n_bmo_SurveyActivity["bmo:SurveyActivity"] --> n_bmo_Flight
+  n_bmo_Host["bmo:Host"]
+  n_bmo_ImageryReference["bmo:ImageryReference"]
+  n_bmo_ObservationRequirement["bmo:ObservationRequirement"]
+  n_bmo_ObservedAnomaly["bmo:ObservedAnomaly"]
+  n_bmo_OperationalJurisdiction["bmo:OperationalJurisdiction"]
+  n_bmo_PilotPathosystem["bmo:PilotPathosystem"]
+  n_bmo_PilotScenarioRole["bmo:PilotScenarioRole"]
+  n_bmo_ProvenanceQualityStatus["bmo:ProvenanceQualityStatus"]
+  n_bmo_ReceiptEvent["bmo:ReceiptEvent"]
+  n_bmo_CustodyEvent["bmo:CustodyEvent"] --> n_bmo_ReceiptEvent
+  n_bmo_RegulatoryActionType["bmo:RegulatoryActionType"]
+  n_bmo_RegulatoryDetermination["bmo:RegulatoryDetermination"]
+  n_bmo_ReportingCrosswalk["bmo:ReportingCrosswalk"]
+  n_bmo_ReportingDecision["bmo:ReportingDecision"]
+  n_bmo_ReportingRule["bmo:ReportingRule"]
+  n_bmo_RuleReviewStatus["bmo:RuleReviewStatus"]
+  n_bmo_SampleCollection["bmo:SampleCollection"]
+  n_bmo_CustodyEvent["bmo:CustodyEvent"] --> n_bmo_SampleCollection
+  n_bmo_SamplingRecommendation["bmo:SamplingRecommendation"]
+  n_bmo_SensorIndicationAssertion["bmo:SensorIndicationAssertion"]
+  n_bmo_SensorObservation["bmo:SensorObservation"]
+  n_bmo_SpatialSupportDescription["bmo:SpatialSupportDescription"]
+  n_bmo_Specimen["bmo:Specimen"]
+  n_bmo_SpectralAnomaly["bmo:SpectralAnomaly"]
+  n_bmo_ObservedAnomaly["bmo:ObservedAnomaly"] --> n_bmo_SpectralAnomaly
+  n_bmo_StorageEvent["bmo:StorageEvent"]
+  n_bmo_CustodyEvent["bmo:CustodyEvent"] --> n_bmo_StorageEvent
+  n_bmo_SupportKind["bmo:SupportKind"]
+  n_bmo_SurveyActivity["bmo:SurveyActivity"]
+  n_bmo_TransferEvent["bmo:TransferEvent"]
+  n_bmo_CustodyEvent["bmo:CustodyEvent"] --> n_bmo_TransferEvent
+  n_bmo_Zone["bmo:Zone"]
 ~~~
 
-`Flight` and `SpectralAnomaly` remain useful for the initial drone use case, but neither is the root concept.
-
-## 3. Hypothesis and adaptive-observation structure
+## Core relation graph
 
 ~~~mermaid
-classDiagram
-    class SensorIndicationAssertion
-    class DiagnosticHypothesis
-    class DiagnosticCandidateSet
-    class ObservationRequirement
-    class SamplingRecommendation
-
-    SensorIndicationAssertion --> ObservedAnomaly : derivedFromAnomaly
-    DiagnosticCandidateSet --> DiagnosticHypothesis : hasCandidate
-    ObservationRequirement --> DiagnosticHypothesis : discriminates
-    SamplingRecommendation --> DiagnosticHypothesis : discriminates
+graph LR
+  n_up_InformationArtifact["up:InformationArtifact"]
+  n_bmo_OperationalJurisdiction["bmo:OperationalJurisdiction"]
+  n_up_InformationArtifact -->|"bmo:appliesInJurisdiction"| n_bmo_OperationalJurisdiction
+  n_bmo_ConfidenceAssessment["bmo:ConfidenceAssessment"]
+  n_bmo_ApplicabilityStatus["bmo:ApplicabilityStatus"]
+  n_bmo_ConfidenceAssessment -->|"bmo:assayApplicability"| n_bmo_ApplicabilityStatus
+  n_bmo_DiagnosticDetectionAssertion["bmo:DiagnosticDetectionAssertion"]
+  n_rdfs_Resource["rdfs:Resource"]
+  n_bmo_DiagnosticDetectionAssertion -->|"bmo:assertsPathogen"| n_rdfs_Resource
+  n_bmo_RegulatoryDetermination["bmo:RegulatoryDetermination"]
+  n_bmo_DiagnosticDetectionAssertion["bmo:DiagnosticDetectionAssertion"]
+  n_bmo_RegulatoryDetermination -->|"bmo:basedOnDetection"| n_bmo_DiagnosticDetectionAssertion
+  n_up_Assertion["up:Assertion"]
+  n_bmo_Zone["bmo:Zone"]
+  n_up_Assertion -->|"bmo:concernsZone"| n_bmo_Zone
+  n_bmo_CustodyEvent["bmo:CustodyEvent"]
+  n_bmo_Specimen["bmo:Specimen"]
+  n_bmo_CustodyEvent -->|"bmo:custodySubject"| n_bmo_Specimen
+  n_bmo_SensorIndicationAssertion["bmo:SensorIndicationAssertion"]
+  n_bmo_ObservedAnomaly["bmo:ObservedAnomaly"]
+  n_bmo_SensorIndicationAssertion -->|"bmo:derivedFromAnomaly"| n_bmo_ObservedAnomaly
+  n_bmo_ObservedAnomaly["bmo:ObservedAnomaly"]
+  n_bmo_SensorObservation["bmo:SensorObservation"]
+  n_bmo_ObservedAnomaly -->|"bmo:derivedFromObservation"| n_bmo_SensorObservation
+  n_bmo_DiagnosticDetectionAssertion["bmo:DiagnosticDetectionAssertion"]
+  n_bmo_DiagnosticResult["bmo:DiagnosticResult"]
+  n_bmo_DiagnosticDetectionAssertion -->|"bmo:derivedFromResult"| n_bmo_DiagnosticResult
+  n_bmo_CustodyRecord["bmo:CustodyRecord"]
+  n_bmo_CustodyChain["bmo:CustodyChain"]
+  n_bmo_CustodyRecord -->|"bmo:describesCustodyChain"| n_bmo_CustodyChain
+  n_up_RecordedProcess["up:RecordedProcess"]
+  n_prov_Agent["prov:Agent"]
+  n_up_RecordedProcess -->|"bmo:eventAgent"| n_prov_Agent
+  n_bmo_ConfidenceAssessment["bmo:ConfidenceAssessment"]
+  n_bmo_EvidenceCompletenessLevel["bmo:EvidenceCompletenessLevel"]
+  n_bmo_ConfidenceAssessment -->|"bmo:evidenceCompleteness"| n_bmo_EvidenceCompletenessLevel
+  n_bmo_ConfidenceAssessment["bmo:ConfidenceAssessment"]
+  n_bmo_EvidenceStrengthLevel["bmo:EvidenceStrengthLevel"]
+  n_bmo_ConfidenceAssessment -->|"bmo:evidenceStrength"| n_bmo_EvidenceStrengthLevel
+  n_bmo_CustodyEvent["bmo:CustodyEvent"]
+  n_prov_Agent["prov:Agent"]
+  n_bmo_CustodyEvent -->|"bmo:fromCustodian"| n_prov_Agent
+  n_bmo_DiagnosticCandidateSet["bmo:DiagnosticCandidateSet"]
+  n_bmo_DiagnosticHypothesis["bmo:DiagnosticHypothesis"]
+  n_bmo_DiagnosticCandidateSet -->|"bmo:hasCandidate"| n_bmo_DiagnosticHypothesis
+  n_up_Assertion["up:Assertion"]
+  n_bmo_ConfidenceAssessment["bmo:ConfidenceAssessment"]
+  n_up_Assertion -->|"bmo:hasConfidenceAssessment"| n_bmo_ConfidenceAssessment
+  n_bmo_CustodyRecord["bmo:CustodyRecord"]
+  n_bmo_CustodyEvent["bmo:CustodyEvent"]
+  n_bmo_CustodyRecord -->|"bmo:hasCustodyEvent"| n_bmo_CustodyEvent
+  n_bmo_DiagnosticDetectionAssertion["bmo:DiagnosticDetectionAssertion"]
+  n_bmo_CustodyRecord["bmo:CustodyRecord"]
+  n_bmo_DiagnosticDetectionAssertion -->|"bmo:hasCustodyRecord"| n_bmo_CustodyRecord
+  n_bmo_DiagnosticProcedureProfile["bmo:DiagnosticProcedureProfile"]
+  n_bmo_DetectionLimit["bmo:DetectionLimit"]
+  n_bmo_DiagnosticProcedureProfile -->|"bmo:hasDetectionLimit"| n_bmo_DetectionLimit
+  n_up_Assertion["up:Assertion"]
+  n_bmo_DiagnosticDisposition["bmo:DiagnosticDisposition"]
+  n_up_Assertion -->|"bmo:hasDiagnosticDisposition"| n_bmo_DiagnosticDisposition
+  n_up_Assertion["up:Assertion"]
+  n_bmo_EvidenceStage["bmo:EvidenceStage"]
+  n_up_Assertion -->|"bmo:hasEvidenceStage"| n_bmo_EvidenceStage
+  n_up_InformationArtifact["up:InformationArtifact"]
+  n_bmo_SpatialSupportDescription["bmo:SpatialSupportDescription"]
+  n_up_InformationArtifact -->|"bmo:hasSpatialSupport"| n_bmo_SpatialSupportDescription
+  n_bmo_SurveyActivity["bmo:SurveyActivity"]
+  n_sosa_Platform["sosa:Platform"]
+  n_bmo_SurveyActivity -->|"bmo:hostedByPlatform"| n_sosa_Platform
+  n_bmo_PilotPathosystem["bmo:PilotPathosystem"]
+  n_rdfs_Resource["rdfs:Resource"]
+  n_bmo_PilotPathosystem -->|"bmo:hostTaxon"| n_rdfs_Resource
+  n_bmo_DiagnosticHypothesis["bmo:DiagnosticHypothesis"]
+  n_rdfs_Resource["rdfs:Resource"]
+  n_bmo_DiagnosticHypothesis -->|"bmo:hypothesizesAgent"| n_rdfs_Resource
+  n_bmo_RegulatoryDetermination["bmo:RegulatoryDetermination"]
+  n_prov_Agent["prov:Agent"]
+  n_bmo_RegulatoryDetermination -->|"bmo:issuedBy"| n_prov_Agent
+  n_bmo_SurveyActivity["bmo:SurveyActivity"]
+  n_bmo_SensorObservation["bmo:SensorObservation"]
+  n_bmo_SurveyActivity -->|"bmo:madeObservation"| n_bmo_SensorObservation
+  n_bmo_ConfidenceAssessment["bmo:ConfidenceAssessment"]
+  n_bmo_ApplicabilityStatus["bmo:ApplicabilityStatus"]
+  n_bmo_ConfidenceAssessment -->|"bmo:modelApplicability"| n_bmo_ApplicabilityStatus
+  n_bmo_ReportingRule["bmo:ReportingRule"]
+  n_prov_Agent["prov:Agent"]
+  n_bmo_ReportingRule -->|"bmo:notificationRecipient"| n_prov_Agent
+  n_bmo_SurveyActivity["bmo:SurveyActivity"]
+  n_bmo_ObservedAnomaly["bmo:ObservedAnomaly"]
+  n_bmo_SurveyActivity -->|"bmo:observedAnomaly"| n_bmo_ObservedAnomaly
+  n_up_RecordedProcess["up:RecordedProcess"]
+  n_bmo_Zone["bmo:Zone"]
+  n_up_RecordedProcess -->|"bmo:occursAtZone"| n_bmo_Zone
+  n_up_SurveyedSite["up:SurveyedSite"]
+  n_up_SurveyedSite["up:SurveyedSite"]
+  n_up_SurveyedSite -->|"bmo:partOfSite"| n_up_SurveyedSite
+  n_bmo_PilotPathosystem["bmo:PilotPathosystem"]
+  n_rdfs_Resource["rdfs:Resource"]
+  n_bmo_PilotPathosystem -->|"bmo:pathogenTaxon"| n_rdfs_Resource
+  n_bmo_CustodyEvent["bmo:CustodyEvent"]
+  n_bmo_CustodyEvent["bmo:CustodyEvent"]
+  n_bmo_CustodyEvent -->|"bmo:previousCustodyEvent"| n_bmo_CustodyEvent
+  n_bmo_AliquotEvent["bmo:AliquotEvent"]
+  n_bmo_Aliquot["bmo:Aliquot"]
+  n_bmo_AliquotEvent -->|"bmo:producedAliquot"| n_bmo_Aliquot
+  n_bmo_DiagnosticResult["bmo:DiagnosticResult"]
+  n_bmo_DiagnosticProcedure["bmo:DiagnosticProcedure"]
+  n_bmo_DiagnosticResult -->|"bmo:producedByProcedure"| n_bmo_DiagnosticProcedure
+  n_bmo_DiagnosticProcedure["bmo:DiagnosticProcedure"]
+  n_bmo_DiagnosticResult["bmo:DiagnosticResult"]
+  n_bmo_DiagnosticProcedure -->|"bmo:producedResult"| n_bmo_DiagnosticResult
+  n_bmo_DiagnosticProcedureProfile["bmo:DiagnosticProcedureProfile"]
+  n_rdfs_Resource["rdfs:Resource"]
+  n_bmo_DiagnosticProcedureProfile -->|"bmo:profilesMethod"| n_rdfs_Resource
+  n_bmo_ConfidenceAssessment["bmo:ConfidenceAssessment"]
+  n_bmo_ProvenanceQualityStatus["bmo:ProvenanceQualityStatus"]
+  n_bmo_ConfidenceAssessment -->|"bmo:provenanceQuality"| n_bmo_ProvenanceQualityStatus
+  n_bmo_ObservedAnomaly["bmo:ObservedAnomaly"]
+  n_bmo_ImageryReference["bmo:ImageryReference"]
+  n_bmo_ObservedAnomaly -->|"bmo:referencesImagery"| n_bmo_ImageryReference
+  n_bmo_ReportingRule["bmo:ReportingRule"]
+  n_rdfs_Resource["rdfs:Resource"]
+  n_bmo_ReportingRule -->|"bmo:regulatedArea"| n_rdfs_Resource
+  n_bmo_ReportingRule["bmo:ReportingRule"]
+  n_rdfs_Resource["rdfs:Resource"]
+  n_bmo_ReportingRule -->|"bmo:regulatedCommodity"| n_rdfs_Resource
+  n_bmo_ReportingRule["bmo:ReportingRule"]
+  n_rdfs_Resource["rdfs:Resource"]
+  n_bmo_ReportingRule -->|"bmo:regulatedHost"| n_rdfs_Resource
+  n_bmo_ReportingRule["bmo:ReportingRule"]
+  n_rdfs_Resource["rdfs:Resource"]
+  n_bmo_ReportingRule -->|"bmo:regulatedTaxon"| n_rdfs_Resource
+  n_bmo_ReportingRule["bmo:ReportingRule"]
+  n_prov_Agent["prov:Agent"]
+  n_bmo_ReportingRule -->|"bmo:regulatoryAuthority"| n_prov_Agent
+  n_bmo_ReportingRule["bmo:ReportingRule"]
+  n_bmo_RegulatoryActionType["bmo:RegulatoryActionType"]
+  n_bmo_ReportingRule -->|"bmo:requiredAction"| n_bmo_RegulatoryActionType
+  n_bmo_ReportingRule["bmo:ReportingRule"]
+  n_rdfs_Resource["rdfs:Resource"]
+  n_bmo_ReportingRule -->|"bmo:requiredConfirmationMethod"| n_rdfs_Resource
+  n_bmo_DiagnosticResult["bmo:DiagnosticResult"]
+  n_bmo_DiagnosticResultStatus["bmo:DiagnosticResultStatus"]
+  n_bmo_DiagnosticResult -->|"bmo:resultStatus"| n_bmo_DiagnosticResultStatus
+  n_bmo_ReportingRule["bmo:ReportingRule"]
+  n_bmo_RuleReviewStatus["bmo:RuleReviewStatus"]
+  n_bmo_ReportingRule -->|"bmo:ruleReviewStatus"| n_bmo_RuleReviewStatus
+  n_bmo_PilotPathosystem["bmo:PilotPathosystem"]
+  n_bmo_PilotScenarioRole["bmo:PilotScenarioRole"]
+  n_bmo_PilotPathosystem -->|"bmo:scenarioRole"| n_bmo_PilotScenarioRole
+  n_bmo_AliquotEvent["bmo:AliquotEvent"]
+  n_bmo_Specimen["bmo:Specimen"]
+  n_bmo_AliquotEvent -->|"bmo:sourceSpecimen"| n_bmo_Specimen
+  n_up_Assertion["up:Assertion"]
+  n_bmo_ReportingRule["bmo:ReportingRule"]
+  n_up_Assertion -->|"bmo:subjectToReportingRule"| n_bmo_ReportingRule
+  n_bmo_ReportingRule["bmo:ReportingRule"]
+  n_bmo_ReportingRule["bmo:ReportingRule"]
+  n_bmo_ReportingRule -->|"bmo:supersedesRule"| n_bmo_ReportingRule
+  n_bmo_SpatialSupportDescription["bmo:SpatialSupportDescription"]
+  n_bmo_SupportKind["bmo:SupportKind"]
+  n_bmo_SpatialSupportDescription -->|"bmo:supportKind"| n_bmo_SupportKind
+  n_bmo_ReportingCrosswalk["bmo:ReportingCrosswalk"]
+  n_bmo_ExternalReportingScheme["bmo:ExternalReportingScheme"]
+  n_bmo_ReportingCrosswalk -->|"bmo:targetScheme"| n_bmo_ExternalReportingScheme
+  n_bmo_CustodyEvent["bmo:CustodyEvent"]
+  n_prov_Agent["prov:Agent"]
+  n_bmo_CustodyEvent -->|"bmo:toCustodian"| n_prov_Agent
+  n_bmo_ReportingRule["bmo:ReportingRule"]
+  n_bmo_DiagnosticDisposition["bmo:DiagnosticDisposition"]
+  n_bmo_ReportingRule -->|"bmo:triggerDiagnosticDisposition"| n_bmo_DiagnosticDisposition
+  n_up_Assertion["up:Assertion"]
+  n_bmo_Alert["bmo:Alert"]
+  n_up_Assertion -->|"bmo:triggeredAlert"| n_bmo_Alert
+  n_bmo_ReportingRule["bmo:ReportingRule"]
+  n_bmo_EvidenceStage["bmo:EvidenceStage"]
+  n_bmo_ReportingRule -->|"bmo:triggerEvidenceStage"| n_bmo_EvidenceStage
+  n_bmo_DiagnosticProcedure["bmo:DiagnosticProcedure"]
+  n_bmo_Specimen["bmo:Specimen"]
+  n_bmo_DiagnosticProcedure -->|"bmo:usedSpecimen"| n_bmo_Specimen
+  n_bmo_SurveyActivity["bmo:SurveyActivity"]
+  n_sosa_Sensor["sosa:Sensor"]
+  n_bmo_SurveyActivity -->|"bmo:usesSensor"| n_sosa_Sensor
+  n_bmo_DiagnosticProcedureProfile["bmo:DiagnosticProcedureProfile"]
+  n_rdfs_Resource["rdfs:Resource"]
+  n_bmo_DiagnosticProcedureProfile -->|"bmo:validatedForHost"| n_rdfs_Resource
+  n_bmo_DiagnosticProcedureProfile["bmo:DiagnosticProcedureProfile"]
+  n_rdfs_Resource["rdfs:Resource"]
+  n_bmo_DiagnosticProcedureProfile -->|"bmo:validatedForMatrix"| n_rdfs_Resource
+  n_bmo_DiagnosticProcedureProfile["bmo:DiagnosticProcedureProfile"]
+  n_rdfs_Resource["rdfs:Resource"]
+  n_bmo_DiagnosticProcedureProfile -->|"bmo:validatedForPathogen"| n_rdfs_Resource
+  n_bmo_DiagnosticProcedureProfile["bmo:DiagnosticProcedureProfile"]
+  n_rdfs_Resource["rdfs:Resource"]
+  n_bmo_DiagnosticProcedureProfile -->|"bmo:validationSource"| n_rdfs_Resource
+  n_bmo_SampleCollection["bmo:SampleCollection"]
+  n_bmo_Specimen["bmo:Specimen"]
+  n_bmo_SampleCollection -->|"bmo:yieldedSpecimen"| n_bmo_Specimen
 ~~~
-
-A sensor indication may cause hypotheses to be created. It does not itself assert pathogen presence.
-
-## 4. Physical evidence and custody
-
-~~~mermaid
-classDiagram
-    class CustodyEvent
-    class SampleCollection
-    class TransferEvent
-    class ReceiptEvent
-    class StorageEvent
-    class AliquotEvent
-    class CustodyChain
-    class CustodyRecord
-    class Specimen
-    class Aliquot
-    class Container
-
-    CustodyEvent <|-- SampleCollection
-    CustodyEvent <|-- TransferEvent
-    CustodyEvent <|-- ReceiptEvent
-    CustodyEvent <|-- StorageEvent
-    CustodyEvent <|-- AliquotEvent
-
-    Specimen <|-- Aliquot
-    SampleCollection --> Specimen : yieldedSpecimen
-    TransferEvent --> Specimen : custodySubject
-    ReceiptEvent --> Specimen : custodySubject
-    AliquotEvent --> Specimen : sourceSpecimen
-    AliquotEvent --> Aliquot : producedAliquot
-    CustodyRecord --> CustodyEvent : hasCustodyEvent
-    CustodyRecord --> CustodyChain : describesCustodyChain
-~~~
-
-The real custody history and the record describing it are intentionally separate.
-
-## 5. Diagnostic layer
-
-~~~mermaid
-classDiagram
-    class DiagnosticProcedure
-    class Assay
-    class DiagnosticResult
-    class AssayResult
-    class DiagnosticProcedureProfile
-    class DetectionLimit
-    class DiagnosticResultStatus
-
-    DiagnosticProcedure <|-- Assay
-    DiagnosticResult <|-- AssayResult
-    DiagnosticProcedure --> Specimen : usedSpecimen
-    DiagnosticProcedure --> DiagnosticResult : producedResult
-    DiagnosticResult --> DiagnosticResultStatus : resultStatus
-    DiagnosticProcedureProfile --> DetectionLimit : hasDetectionLimit
-~~~
-
-The method profile states where a method is validated. The result states what happened in one procedure event.
-
-## 6. Epistemic model
-
-~~~mermaid
-classDiagram
-    class EvidenceStage
-    class DiagnosticDisposition
-    class ConfidenceAssessment
-    class EvidenceStrengthLevel
-    class EvidenceCompletenessLevel
-    class ApplicabilityStatus
-    class ProvenanceQualityStatus
-
-    ConfidenceAssessment --> EvidenceStrengthLevel : evidenceStrength
-    ConfidenceAssessment --> EvidenceCompletenessLevel : evidenceCompleteness
-    ConfidenceAssessment --> ApplicabilityStatus : modelApplicability
-    ConfidenceAssessment --> ApplicabilityStatus : assayApplicability
-    ConfidenceAssessment --> ProvenanceQualityStatus : provenanceQuality
-~~~
-
-These are independent dimensions. The ontology deliberately does not recreate the old single ranked confidence tier.
-
-## 7. Assertion hierarchy
-
-~~~mermaid
-classDiagram
-    class Assertion
-    class SensorIndicationAssertion
-    class DiagnosticHypothesis
-    class DiagnosticDetectionAssertion
-    class ConfirmedDetectionAssertion
-    class RegulatoryDetermination
-    class ReportingDecision
-
-    Assertion <|-- SensorIndicationAssertion
-    Assertion <|-- DiagnosticHypothesis
-    Assertion <|-- DiagnosticDetectionAssertion
-    DiagnosticDetectionAssertion <|-- ConfirmedDetectionAssertion
-    Assertion <|-- RegulatoryDetermination
-    Assertion <|-- ReportingDecision
-~~~
-
-All of these are claims. They are preserved as first-class information objects so that evidence, provenance, version, disagreement, and later revision can be represented.
-
-## 8. Reporting and jurisdiction
-
-~~~mermaid
-classDiagram
-    class OperationalJurisdiction
-    class ReportingRule
-    class ExternalReportingScheme
-    class ExternalReportingTerm
-    class ReportingCrosswalk
-    class DiagnosticDetectionAssertion
-    class RegulatoryDetermination
-
-    DiagnosticDetectionAssertion --> ReportingRule : subjectToReportingRule
-    ReportingRule --> OperationalJurisdiction : appliesInJurisdiction
-    RegulatoryDetermination --> DiagnosticDetectionAssertion : basedOnDetection
-    ReportingCrosswalk --> ExternalReportingScheme : targetScheme
-    ReportingCrosswalk --> ExternalReportingTerm : crosswalkTo
-~~~
-
-Arkansas, Louisiana, Missouri, Oklahoma, and Texas are individuals of `OperationalJurisdiction`, not subclasses.
-
-## 9. BFO anchoring by category
-
-~~~mermaid
-flowchart TB
-    BFO[BFO 2.0]
-    INFO[Information / assertions]
-    PROC[Processes]
-    MAT[Material entities]
-    SITE[Sites / places]
-
-    BFO --> INFO
-    BFO --> PROC
-    BFO --> MAT
-    BFO --> SITE
-
-    INFO --> SI[SensorIndicationAssertion]
-    INFO --> DH[DiagnosticHypothesis]
-    INFO --> DR[DiagnosticResult]
-    INFO --> DD[DiagnosticDetectionAssertion]
-    INFO --> RR[ReportingRule]
-
-    PROC --> SA[SurveyActivity]
-    PROC --> CE[CustodyEvent]
-    PROC --> DP[DiagnosticProcedure]
-
-    MAT --> SP[Specimen]
-    MAT --> AQ[Aliquot]
-    MAT --> CT[Container]
-
-    SITE --> F[Farm]
-    SITE --> FI[Field]
-    SITE --> Z[Zone]
-~~~
-
-The shared upper module exists to make category mistakes visible. A diagnostic result, for example, is information about a physical specimen; it is not itself material.
-
-
-## 10. Pilot and regulatory governance additions
-
-~~~mermaid
-classDiagram
-    class PilotPathosystem
-    class PilotScenarioRole
-    class ReportingRule
-    class RuleReviewStatus
-    class RegulatoryActionType
-    class OperationalJurisdiction
-
-    PilotPathosystem --> PilotScenarioRole : scenarioRole
-    ReportingRule --> OperationalJurisdiction : appliesInJurisdiction
-    ReportingRule --> RuleReviewStatus : ruleReviewStatus
-    ReportingRule --> RegulatoryActionType : requiredAction
-~~~
-
-Pilot pathosystems are reference-data profiles. Reporting rules are versioned governance records; state names, crops, and pathogens are not turned into subclasses.

@@ -1,126 +1,125 @@
 #!/usr/bin/env python3
-"""Generate structural Markdown documentation from the Black Mesa schema."""
+"""Generate structural Markdown documentation from Black Mesa Turtle sources."""
 
 from __future__ import annotations
 
 import argparse
-import hashlib
 import re
+from dataclasses import dataclass
 from pathlib import Path
 
-import rdflib
-from rdflib import OWL, RDF, RDFS
-
-BMO = rdflib.Namespace("https://w3id.org/black-mesa/bmo/")
-UP = rdflib.Namespace("https://w3id.org/black-mesa/upper/")
 MARKER = "<!-- GENERATED FILE — DO NOT EDIT BY HAND. Rebuild with: python tools/schema_docs.py --schema schema --out docs/reference -->"
 
 
-def load_schema(schema_dir: Path) -> rdflib.Graph:
-    g = rdflib.Graph()
-    g.bind("bmo", BMO)
-    g.bind("up", UP)
-    for path in sorted(schema_dir.glob("*.ttl")):
-        if path.name == "shapes.ttl":
+@dataclass(frozen=True)
+class Term:
+    term: str
+    kind: str
+    label: str
+    comment: str
+    parent: str = "—"
+    domain: str = "—"
+    range: str = "—"
+
+
+def parse_terms(text: str) -> list[Term]:
+    lines = text.splitlines()
+    out: list[Term] = []
+    i = 0
+    start = re.compile(r"^(bmo:\w+)\s+a\s+owl:(Class|ObjectProperty|DatatypeProperty)\s*;")
+    while i < len(lines):
+        match = start.match(lines[i])
+        if not match:
+            i += 1
             continue
-        g.parse(path, format="turtle")
-    return g
-
-
-def qname(g: rdflib.Graph, term) -> str:
-    if term is None:
-        return "—"
-    try:
-        return g.namespace_manager.qname(term)
-    except Exception:
-        return str(term)
-
-
-def local(term) -> bool:
-    return str(term).startswith(str(BMO))
-
-
-def label(g: rdflib.Graph, term) -> str:
-    value = next(iter(g.objects(term, RDFS.label)), None)
-    return str(value) if value is not None else qname(g, term)
-
-
-def comment(g: rdflib.Graph, term) -> str:
-    value = next(iter(g.objects(term, RDFS.comment)), None)
-    return str(value) if value is not None else "_No description supplied._"
-
-
-def first(g: rdflib.Graph, subject, predicate):
-    return next(iter(g.objects(subject, predicate)), None)
+        buf = [lines[i]]
+        while not buf[-1].rstrip().endswith(".") and i + 1 < len(lines):
+            i += 1
+            buf.append(lines[i])
+        block = "\n".join(buf)
+        label_m = re.search(r'rdfs:label\s+"([^"]+)"', block)
+        comment_m = re.search(r'rdfs:comment\s+"([^"]+)"', block)
+        parent_m = re.search(r"rdfs:subClassOf\s+([^;]+)\s*;", block)
+        domain_m = re.search(r"rdfs:domain\s+([^;\s]+)\s*;", block)
+        range_m = re.search(r"rdfs:range\s+([^;\s.]+)(?:\s*[;.])", block)
+        out.append(Term(
+            term=match.group(1),
+            kind=match.group(2),
+            label=label_m.group(1) if label_m else match.group(1),
+            comment=comment_m.group(1) if comment_m else "_No description supplied._",
+            parent=parent_m.group(1).strip() if parent_m else "—",
+            domain=domain_m.group(1) if domain_m else "—",
+            range=range_m.group(1) if range_m else "—",
+        ))
+        i += 1
+    return out
 
 
 def anchor(text: str) -> str:
-    return text.lower().replace(":", "-").replace("_", "-").replace(" ", "-")
+    return re.sub(r"[:_ ]", "-", text.lower())
 
 
-def node_id(uri) -> str:
-    return "n" + hashlib.sha1(str(uri).encode("utf-8")).hexdigest()[:10]
+def node(text: str) -> str:
+    return "n_" + re.sub(r"\W", "_", text)
 
 
-def generate_reference(g: rdflib.Graph) -> str:
-    classes = sorted({s for s in g.subjects(RDF.type, OWL.Class) if local(s)}, key=str)
-    object_props = sorted({s for s in g.subjects(RDF.type, OWL.ObjectProperty) if local(s)}, key=str)
-    datatype_props = sorted({s for s in g.subjects(RDF.type, OWL.DatatypeProperty) if local(s)}, key=str)
+def esc(text: str) -> str:
+    return text.replace("\n", " ").replace("|", "\\|")
+
+
+def generate_reference(terms: list[Term]) -> str:
+    classes = sorted((x for x in terms if x.kind == "Class"), key=lambda x: x.term)
+    ops = sorted((x for x in terms if x.kind == "ObjectProperty"), key=lambda x: x.term)
+    dps = sorted((x for x in terms if x.kind == "DatatypeProperty"), key=lambda x: x.term)
     out = [
         MARKER, "", "# Schema reference", "",
         "Structural reference generated directly from Turtle. For conceptual guidance, read [modeling principles](../model/modeling-principles.md) and [evidence chain](../model/evidence-chain.md).",
-        "", f"**{len(classes)} local classes · {len(object_props)} object properties · {len(datatype_props)} datatype properties**",
+        "", f"**{len(classes)} local classes · {len(ops)} object properties · {len(dps)} datatype properties**",
         "", "## Classes", "", "| Class | Parent(s) | Meaning |", "|---|---|---|",
     ]
-    for cls in classes:
-        parents = sorted(g.objects(cls, RDFS.subClassOf), key=str)
-        parent_text = ", ".join(qname(g, p) for p in parents) or "—"
-        meaning = comment(g, cls).replace("\n", " ").replace("|", "\\|")
-        out.append(f"| [{qname(g,cls)}](#{anchor(qname(g,cls))}) | {parent_text} | {meaning} |")
+    out += [f"| [{x.term}](#{anchor(x.term)}) | {x.parent} | {esc(x.comment)} |" for x in classes]
     out += ["", "## Object properties", "", "| Property | Domain | Range | Meaning |", "|---|---|---|---|"]
-    for prop in object_props:
-        meaning = comment(g, prop).replace("\n", " ").replace("|", "\\|")
-        out.append(f"| {qname(g,prop)} | {qname(g,first(g,prop,RDFS.domain))} | {qname(g,first(g,prop,RDFS.range))} | {meaning} |")
+    out += [f"| {x.term} | {x.domain} | {x.range} | {esc(x.comment)} |" for x in ops]
     out += ["", "## Datatype properties", "", "| Property | Domain | Range | Meaning |", "|---|---|---|---|"]
-    for prop in datatype_props:
-        meaning = comment(g, prop).replace("\n", " ").replace("|", "\\|")
-        out.append(f"| {qname(g,prop)} | {qname(g,first(g,prop,RDFS.domain))} | {qname(g,first(g,prop,RDFS.range))} | {meaning} |")
+    out += [f"| {x.term} | {x.domain} | {x.range} | {esc(x.comment)} |" for x in dps]
     out += ["", "## Detailed class definitions", ""]
-    for cls in classes:
-        out += [f"### {qname(g,cls)}", "", f"**{label(g, cls)}**", "", comment(g, cls), ""]
+    for x in classes:
+        out += [f"### {x.term}", "", f"**{x.label}**", "", x.comment, ""]
     return "\n".join(out).rstrip() + "\n"
 
 
-def generate_diagram(g: rdflib.Graph) -> str:
-    classes = sorted({s for s in g.subjects(RDF.type, OWL.Class) if local(s)}, key=str)
-    object_props = sorted({s for s in g.subjects(RDF.type, OWL.ObjectProperty) if local(s)}, key=str)
+def generate_diagram(terms: list[Term]) -> str:
+    classes = sorted((x for x in terms if x.kind == "Class"), key=lambda x: x.term)
+    ops = sorted((x for x in terms if x.kind == "ObjectProperty"), key=lambda x: x.term)
     out = [
         MARKER, "", "# Class diagrams", "",
         "These diagrams are generated from the current Turtle schema. For product workflow and rationale, read [system architecture](../overview/system-architecture.md) and [evidence chain](../model/evidence-chain.md).",
         "", "## Local subclass hierarchy", "", "~~~mermaid", "graph TD",
     ]
-    for cls in classes:
-        cid = node_id(cls)
-        out.append(f'  {cid}["{qname(g, cls)}"]')
-        for parent in sorted(g.objects(cls, RDFS.subClassOf), key=str):
-            if local(parent):
-                out.append(f'  {node_id(parent)}["{qname(g, parent)}"] --> {cid}')
+    for x in classes:
+        out.append(f'  {node(x.term)}["{x.term}"]')
+        for parent in (p.strip() for p in x.parent.split(",")):
+            if parent.startswith("bmo:"):
+                out.append(f'  {node(parent)}["{parent}"] --> {node(x.term)}')
     out += ["~~~", "", "## Core relation graph", "", "~~~mermaid", "graph LR"]
-    for prop in object_props:
-        dom, ran = first(g, prop, RDFS.domain), first(g, prop, RDFS.range)
-        if dom is None or ran is None:
+    for x in ops:
+        if x.domain == "—" or x.range == "—":
             continue
-        out += [f'  {node_id(dom)}["{qname(g, dom)}"]', f'  {node_id(ran)}["{qname(g, ran)}"]', f'  {node_id(dom)} -->|"{qname(g, prop)}"| {node_id(ran)}']
+        out += [
+            f'  {node(x.domain)}["{x.domain}"]',
+            f'  {node(x.range)}["{x.range}"]',
+            f'  {node(x.domain)} -->|"{x.term}"| {node(x.range)}',
+        ]
     out += ["~~~", ""]
     return "\n".join(out)
 
 
 def generate_shacl_reference(text: str) -> str:
-    block_re = re.compile(r"^(bmo:\\w+Shape)\\s+a\\s+sh:NodeShape\\s*;(.*?)(?=^bmo:\\w+Shape\\s+a\\s+sh:NodeShape\\s*;|\\Z)", re.M | re.S)
+    block_re = re.compile(r"^(bmo:\w+Shape)\s+a\s+sh:NodeShape\s*;(.*?)(?=^bmo:\w+Shape\s+a\s+sh:NodeShape\s*;|\Z)", re.M | re.S)
     out = [MARKER, "", "# SHACL reference", "", "Generated from `schema/shapes.ttl`. This is a structural index of current validation messages; [validation and CI](../operations/validation-and-ci.md) explains what the constraints do and do not prove.", ""]
     for name, body in block_re.findall(text):
-        target_match = re.search(r"sh:targetClass\s+([^\s;]+)", body)
-        target = target_match.group(1) if target_match else "— nested/node shape"
+        target_m = re.search(r"sh:targetClass\s+([^\s;]+)", body)
+        target = target_m.group(1) if target_m else "— nested/node shape"
         messages = re.findall(r'sh:message\s+"([^"]+)"', body)
         out += [f"## `{name}`", "", f"**Target:** `{target}`", ""]
         if messages:
@@ -132,10 +131,11 @@ def generate_shacl_reference(text: str) -> str:
     return "\n".join(out).rstrip() + "\n"
 
 
-def generate_namespace_reference(g: rdflib.Graph) -> str:
-    ont = rdflib.URIRef("https://w3id.org/black-mesa/bmo")
-    version = next(iter(g.objects(ont, OWL.versionInfo)), "unknown")
-    version_iri = next(iter(g.objects(ont, OWL.versionIRI)), "unknown")
+def generate_namespace_reference(core: str) -> str:
+    version_m = re.search(r'owl:versionInfo\s+"([^"]+)"', core)
+    version_iri_m = re.search(r"owl:versionIRI\s+<([^>]+)>", core)
+    version = version_m.group(1) if version_m else "unknown"
+    version_iri = version_iri_m.group(1) if version_iri_m else "unknown"
     return f"""{MARKER}
 
 # Namespace reference
@@ -180,15 +180,18 @@ def main() -> int:
     parser.add_argument("--schema", type=Path, default=Path("schema"))
     parser.add_argument("--out", type=Path, default=Path("docs/reference"))
     args = parser.parse_args()
-    g = load_schema(args.schema)
+    source_files = [p for p in sorted(args.schema.glob("*.ttl")) if p.name != "shapes.ttl"]
+    source = "\n".join(p.read_text(encoding="utf-8") for p in source_files)
+    core = (args.schema / "bmo-core.ttl").read_text(encoding="utf-8")
+    shapes = (args.schema / "shapes.ttl").read_text(encoding="utf-8")
+    terms = parse_terms(source)
     args.out.mkdir(parents=True, exist_ok=True)
     (args.out / "README.md").write_text(generate_index(), encoding="utf-8")
-    (args.out / "schema-reference.md").write_text(generate_reference(g), encoding="utf-8")
-    (args.out / "class-diagram.md").write_text(generate_diagram(g), encoding="utf-8")
-    shapes_text = (args.schema / "shapes.ttl").read_text(encoding="utf-8")
-    (args.out / "shacl-reference.md").write_text(generate_shacl_reference(shapes_text), encoding="utf-8")
-    (args.out / "namespace-reference.md").write_text(generate_namespace_reference(g), encoding="utf-8")
-    print(f"Generated documentation from {len(g)} schema triples")
+    (args.out / "schema-reference.md").write_text(generate_reference(terms), encoding="utf-8")
+    (args.out / "class-diagram.md").write_text(generate_diagram(terms), encoding="utf-8")
+    (args.out / "shacl-reference.md").write_text(generate_shacl_reference(shapes), encoding="utf-8")
+    (args.out / "namespace-reference.md").write_text(generate_namespace_reference(core), encoding="utf-8")
+    print(f"Generated documentation for {len(terms)} declared local schema terms")
     return 0
 
 
