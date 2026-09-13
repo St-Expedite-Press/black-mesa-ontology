@@ -112,6 +112,8 @@ def main() -> int:
         print("Documentation validation failed:")
         for issue in issues:
             print(" -", issue)
+            escaped = issue.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
+            print(f"::error title=Documentation validation::{escaped}")
         return 1
     print(f"Documentation validation PASS ({len(docs)} Markdown files checked)")
     return 0
