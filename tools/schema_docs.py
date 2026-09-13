@@ -116,7 +116,7 @@ def generate_diagram(g: rdflib.Graph) -> str:
 
 
 def generate_shacl_reference(text: str) -> str:
-    block_re = re.compile(r"^(bmo:\w+Shape)\s+a\s+sh:NodeShape\s*;(.*?)(?=^bmo:\w+Shape\s+a\s+sh:NodeShape\s*;|\s*$)", re.M | re.S)
+    block_re = re.compile(r"^(bmo:\\w+Shape)\\s+a\\s+sh:NodeShape\\s*;(.*?)(?=^bmo:\\w+Shape\\s+a\\s+sh:NodeShape\\s*;|\\Z)", re.M | re.S)
     out = [MARKER, "", "# SHACL reference", "", "Generated from `schema/shapes.ttl`. This is a structural index of current validation messages; [validation and CI](../operations/validation-and-ci.md) explains what the constraints do and do not prove.", ""]
     for name, body in block_re.findall(text):
         target_match = re.search(r"sh:targetClass\s+([^\s;]+)", body)
