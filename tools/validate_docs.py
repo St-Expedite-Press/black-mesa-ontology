@@ -83,8 +83,8 @@ def main() -> int:
 
 
     core = (ROOT / "schema" / "bmo-core.ttl").read_text(encoding="utf-8")
-    version_m = re.search(r'owl:versionInfo\\s+"([^"]+)"', core)
-    version_iri_m = re.search(r"owl:versionIRI\\s+<([^>]+)>", core)
+    version_m = re.search(r'owl:versionInfo\s+"([^"]+)"', core)
+    version_iri_m = re.search(r"owl:versionIRI\s+<([^>]+)>", core)
     if not version_m or not version_iri_m:
         issues.append("schema/bmo-core.ttl: cannot resolve owl:versionInfo/versionIRI for documentation checks")
     else:
