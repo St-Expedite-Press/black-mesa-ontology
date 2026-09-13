@@ -150,12 +150,12 @@ graph LR
   n_up_InformationArtifact["up:InformationArtifact"]
   n_bmo_SpatialSupportDescription["bmo:SpatialSupportDescription"]
   n_up_InformationArtifact -->|"bmo:hasSpatialSupport"| n_bmo_SpatialSupportDescription
-  n_bmo_SurveyActivity["bmo:SurveyActivity"]
-  n_sosa_Platform["sosa:Platform"]
-  n_bmo_SurveyActivity -->|"bmo:hostedByPlatform"| n_sosa_Platform
   n_bmo_PilotPathosystem["bmo:PilotPathosystem"]
   n_rdfs_Resource["rdfs:Resource"]
   n_bmo_PilotPathosystem -->|"bmo:hostTaxon"| n_rdfs_Resource
+  n_bmo_SurveyActivity["bmo:SurveyActivity"]
+  n_sosa_Platform["sosa:Platform"]
+  n_bmo_SurveyActivity -->|"bmo:hostedByPlatform"| n_sosa_Platform
   n_bmo_DiagnosticHypothesis["bmo:DiagnosticHypothesis"]
   n_rdfs_Resource["rdfs:Resource"]
   n_bmo_DiagnosticHypothesis -->|"bmo:hypothesizesAgent"| n_rdfs_Resource
@@ -255,12 +255,12 @@ graph LR
   n_bmo_ReportingRule["bmo:ReportingRule"]
   n_bmo_DiagnosticDisposition["bmo:DiagnosticDisposition"]
   n_bmo_ReportingRule -->|"bmo:triggerDiagnosticDisposition"| n_bmo_DiagnosticDisposition
-  n_up_Assertion["up:Assertion"]
-  n_bmo_Alert["bmo:Alert"]
-  n_up_Assertion -->|"bmo:triggeredAlert"| n_bmo_Alert
   n_bmo_ReportingRule["bmo:ReportingRule"]
   n_bmo_EvidenceStage["bmo:EvidenceStage"]
   n_bmo_ReportingRule -->|"bmo:triggerEvidenceStage"| n_bmo_EvidenceStage
+  n_up_Assertion["up:Assertion"]
+  n_bmo_Alert["bmo:Alert"]
+  n_up_Assertion -->|"bmo:triggeredAlert"| n_bmo_Alert
   n_bmo_DiagnosticProcedure["bmo:DiagnosticProcedure"]
   n_bmo_Specimen["bmo:Specimen"]
   n_bmo_DiagnosticProcedure -->|"bmo:usedSpecimen"| n_bmo_Specimen
