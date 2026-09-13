@@ -1,8 +1,6 @@
 """Persistent namespace and licensing invariants."""
 from __future__ import annotations
 
-from pathlib import Path
-
 import rdflib
 from rdflib import DCTERMS, OWL, RDF
 
@@ -12,7 +10,8 @@ BMO_ONTOLOGY = rdflib.URIRef("https://w3id.org/black-mesa/bmo")
 UPPER_ONTOLOGY = rdflib.URIRef("https://w3id.org/black-mesa/upper")
 CC_BY_4 = rdflib.URIRef("https://creativecommons.org/licenses/by/4.0/")
 
-SCAN_DIRS = ("schema", "upper", "examples", "reference", "rules", "tests", "tools")
+SCAN_DIRS = ("schema", "upper", "examples", "reference", "rules", "tests", "tools", "docs")
+ROOT_FILES = ("README.md", "CLAUDE.md", "CONTRIBUTING.md", "CHANGELOG.md")
 FORBIDDEN = (
     "https://" + "example.org/bmo/",
     "https://" + "example.org/upper/",
@@ -21,14 +20,17 @@ FORBIDDEN = (
 
 def test_no_deprecated_local_namespace_remains():
     findings = []
+    paths = []
     for dirname in SCAN_DIRS:
-        for path in (ROOT / dirname).glob("**/*"):
-            if not path.is_file() or path.suffix not in {".ttl", ".py", ".md", ".yml", ".yaml"}:
-                continue
-            text = path.read_text(encoding="utf-8")
-            for old in FORBIDDEN:
-                if old in text:
-                    findings.append(f"{path.relative_to(ROOT)} contains {old}")
+        paths.extend((ROOT / dirname).glob("**/*"))
+    paths.extend(ROOT / name for name in ROOT_FILES)
+    for path in paths:
+        if not path.is_file() or path.suffix not in {".ttl", ".py", ".md", ".yml", ".yaml"}:
+            continue
+        text = path.read_text(encoding="utf-8")
+        for old in FORBIDDEN:
+            if old in text:
+                findings.append(f"{path.relative_to(ROOT)} contains {old}")
     assert not findings, "\n".join(findings)
 
 

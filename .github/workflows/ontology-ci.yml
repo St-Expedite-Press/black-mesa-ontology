@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - "v*"
+      - "docs/**"
     paths:
       - "schema/**"
       - "upper/**"
@@ -15,6 +16,12 @@ on:
       - "examples/**"
       - "reference/**"
       - "rules/**"
+      - "docs/**"
+      - "README.md"
+      - "CLAUDE.md"
+      - "CONTRIBUTING.md"
+      - "CHANGELOG.md"
+      - "NOTICE.md"
       - "LICENSE*"
       - ".github/workflows/ontology-ci.yml"
   pull_request:
@@ -28,6 +35,12 @@ on:
       - "examples/**"
       - "reference/**"
       - "rules/**"
+      - "docs/**"
+      - "README.md"
+      - "CLAUDE.md"
+      - "CONTRIBUTING.md"
+      - "CHANGELOG.md"
+      - "NOTICE.md"
       - "LICENSE*"
       - ".github/workflows/ontology-ci.yml"
 
@@ -56,18 +69,20 @@ jobs:
       - name: Run adversarial tests
         run: python -m pytest tests/ -q
 
-      - name: Smoke-test documentation generator
+      - name: Verify generated documentation is current
         run: |
+          rm -rf /tmp/bmo-docs
           python tools/schema_docs.py --schema schema --out /tmp/bmo-docs
-          test -s /tmp/bmo-docs/schema-reference.md
-          test -s /tmp/bmo-docs/class-diagram.md
+          diff -ru docs/reference /tmp/bmo-docs
+
+      - name: Validate documentation
+        run: python tools/validate_docs.py
 
       - name: Parse project RDF data
         run: |
           python - <<'PY'
           from pathlib import Path
           import rdflib
-
           paths = []
           paths.extend(Path("examples").glob("*.ttl"))
           paths.extend(Path("reference").glob("*.ttl"))

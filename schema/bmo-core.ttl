@@ -12,7 +12,7 @@
 @prefix prov: <http://www.w3.org/ns/prov#> .
 
 # ===========================================================================
-# BLACK MESA SENSOR-AGNOSTIC DETECTION CORE — v0.3
+# BLACK MESA SENSOR-AGNOSTIC DETECTION CORE — v0.4
 #
 # Purpose
 # -------

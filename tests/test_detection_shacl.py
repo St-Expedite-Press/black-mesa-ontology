@@ -1,4 +1,4 @@
-"""Adversarial SHACL tests for the Black Mesa v0.3 detection core.
+"""Adversarial SHACL tests for the current Black Mesa detection core.
 
 Every high-consequence modelling rule gets a planted violation. The point is
 not merely that valid Turtle parses; the suite proves that the constraints that
