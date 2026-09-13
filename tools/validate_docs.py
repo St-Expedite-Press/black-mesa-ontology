@@ -81,6 +81,29 @@ def main() -> int:
             if not resolved.exists():
                 issues.append(f"{rel}: broken local link -> {raw_target}")
 
+
+    core = (ROOT / "schema" / "bmo-core.ttl").read_text(encoding="utf-8")
+    version_m = re.search(r'owl:versionInfo\\s+"([^"]+)"', core)
+    version_iri_m = re.search(r"owl:versionIRI\\s+<([^>]+)>", core)
+    if not version_m or not version_iri_m:
+        issues.append("schema/bmo-core.ttl: cannot resolve owl:versionInfo/versionIRI for documentation checks")
+    else:
+        version = version_m.group(1)
+        version_iri = version_iri_m.group(1)
+        for relpath in (
+            "README.md",
+            "docs/governance/persistent-identifiers.md",
+            "docs/governance/releases-and-versioning.md",
+        ):
+            path = ROOT / relpath
+            if not path.is_file():
+                continue
+            text = path.read_text(encoding="utf-8")
+            if version not in text:
+                issues.append(f"{relpath}: does not advertise current ontology version {version}")
+            if version_iri not in text:
+                issues.append(f"{relpath}: does not advertise current version IRI {version_iri}")
+
     for path in (ROOT / "docs" / "reference").glob("*.md"):
         if GENERATED_MARKER not in path.read_text(encoding="utf-8"):
             issues.append(f"{path.relative_to(ROOT)}: missing generated-file marker")
