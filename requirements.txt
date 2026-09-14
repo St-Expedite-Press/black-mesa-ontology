@@ -37,6 +37,9 @@ markdown
 pypandoc
 playwright
 
+# Contract validation
+jsonschema
+
 # Ontology / graph visualization & checking
 pyvis
 graphviz

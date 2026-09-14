@@ -1,166 +1,50 @@
-@prefix bmo:  <https://w3id.org/black-mesa/bmo/> .
-@prefix up:   <https://w3id.org/black-mesa/upper/> .
-@prefix prov: <http://www.w3.org/ns/prov#> .
+@prefix bmo:  <https://example.org/bmo/> .
+@prefix up:   <https://example.org/upper/> .
+@prefix bad:  <https://example.org/bmo/bad/> .
 @prefix owl:  <http://www.w3.org/2002/07/owl#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
-@prefix dct:  <http://purl.org/dc/terms/> .
 
-# Deliberate v0.3 violations. Every one exists because a test below expects the
-# matching SHACL rule to reject it.
+# Deliberate violations of the detection-core constraints. Every node here
+# MUST be rejected. Never referenced by the schema; loaded only by tests.
 
+# V1 - a class invented with no upper anchor at all.
 bmo:UnanchoredThing a owl:Class ;
-    rdfs:label "Unanchored thing"@en .
+    rdfs:label "A class that never says what kind of thing it is"@en .
 
-# Shared helper data for deliberately invalid assertions.
-bmo:FixtureZone a bmo:Zone .
-bmo:FixtureAnomaly a bmo:ObservedAnomaly .
-bmo:FixturePathogen a owl:NamedIndividual .
-bmo:FixtureRule a up:RuleSetVersion .
-bmo:FixtureAgent a prov:Agent .
-bmo:FixtureSpecimen a bmo:Specimen .
+# V2 - a detection with no custody chain and no rule version.
+bad:UntraceableDetection a bmo:Detection ;
+    rdfs:label "Detection with no provenance"@en ;
+    bmo:concernsZone bad:Zone1 ;
+    bmo:derivedFromResult bad:Result1 .
 
-bmo:FixtureProcedure a bmo:DiagnosticProcedure ;
-    bmo:usedSpecimen bmo:FixtureSpecimen ;
-    bmo:producedResult bmo:FixtureResult .
+# V3 - a detection concerning two zones.
+bad:OverbroadDetection a bmo:Detection ;
+    rdfs:label "Detection claiming two zones"@en ;
+    bmo:concernsZone bad:Zone1, bad:Zone2 ;
+    bmo:derivedFromResult bad:Result1 ;
+    bmo:hasCustodyChain bad:Chain1 ;
+    up:generatedUnder "RuleSet-1.2" .
 
-bmo:FixtureResult a bmo:DiagnosticResult ;
-    bmo:producedByProcedure bmo:FixtureProcedure ;
-    bmo:resultStatus bmo:PositiveResult .
+# V4 - imagery tiled into the graph: the 665x boundary violation.
+bad:TiledImagery a bmo:ImageryReference ;
+    rdfs:label "Imagery with per-tile triples"@en ;
+    bmo:storageURI "https://example.org/img/1"^^xsd:anyURI ;
+    bmo:checksum "abc123" ;
+    <https://example.org/bmo/tileRow> "14" ;
+    <https://example.org/bmo/pixelValue> "0.73" .
 
-bmo:FixtureCustodyEvent a bmo:SampleCollection ;
-    bmo:occursAtZone bmo:FixtureZone ;
-    bmo:yieldedSpecimen bmo:FixtureSpecimen ;
-    bmo:eventAgent bmo:FixtureAgent ;
-    bmo:eventTime "2026-09-12T12:00:00Z"^^xsd:dateTime .
+# V5 - confidence with no assay applicability, hiding the axis that matters.
+bad:BlindConfidence a bmo:ConfidenceAssessment ;
+    rdfs:label "Confidence hiding applicability"@en ;
+    bmo:hasTier bmo:Confirmed ;
+    bmo:calibratedProbability "0.94"^^xsd:decimal .
 
-bmo:FixtureCustody a bmo:CustodyRecord ;
-    bmo:hasCustodyEvent bmo:FixtureCustodyEvent .
+# V6 - a confidence tier that does not declare whether it presupposes symptoms.
+bad:SilentTier a bmo:ConfidenceTier ;
+    rdfs:label "Tier with no symptom declaration"@en .
 
-bmo:FixtureDiagnosticConfidence a bmo:ConfidenceAssessment ;
-    bmo:evidenceStrength bmo:StrongEvidence ;
-    bmo:evidenceCompleteness bmo:CompleteEvidence ;
-    bmo:assayApplicability bmo:ValidatedApplicability ;
-    bmo:provenanceQuality bmo:CompleteProvenance .
-
-# Sensor indications may generate hypotheses, but they may not directly assert
-# that a pathogen is present.
-bmo:SensorClaimingPathogen a bmo:SensorIndicationAssertion ;
-    bmo:concernsZone bmo:FixtureZone ;
-    bmo:derivedFromAnomaly bmo:FixtureAnomaly ;
-    bmo:assertsPathogen bmo:FixturePathogen ;
-    bmo:hasEvidenceStage bmo:SensorIndicationStage ;
-    bmo:hasConfidenceAssessment bmo:FixtureSensorConfidence ;
-    up:generatedUnder bmo:FixtureRule ;
-    prov:generatedAtTime "2026-09-12T12:10:00Z"^^xsd:dateTime .
-
-bmo:FixtureSensorConfidence a bmo:ConfidenceAssessment ;
-    bmo:evidenceStrength bmo:ModerateEvidence ;
-    bmo:evidenceCompleteness bmo:PartialEvidence ;
-    bmo:modelApplicability bmo:ValidatedApplicability ;
-    bmo:provenanceQuality bmo:CompleteProvenance .
-
-# A diagnostic determination without the custody record is scientifically
-# interpretable but fails the Black Mesa evidentiary contract.
-bmo:UntraceableDetection a bmo:DiagnosticDetectionAssertion ;
-    bmo:concernsZone bmo:FixtureZone ;
-    bmo:assertsPathogen bmo:FixturePathogen ;
-    bmo:derivedFromResult bmo:FixtureResult ;
-    bmo:hasEvidenceStage bmo:DiagnosticEvidenceStage ;
-    bmo:hasDiagnosticDisposition bmo:Suspected ;
-    bmo:hasConfidenceAssessment bmo:FixtureDiagnosticConfidence ;
-    up:generatedUnder bmo:FixtureRule ;
-    prov:generatedAtTime "2026-09-12T13:00:00Z"^^xsd:dateTime .
-
-# A result without a disposition is not a complete diagnostic determination.
-bmo:DetectionNoDisposition a bmo:DiagnosticDetectionAssertion ;
-    bmo:concernsZone bmo:FixtureZone ;
-    bmo:assertsPathogen bmo:FixturePathogen ;
-    bmo:derivedFromResult bmo:FixtureResult ;
-    bmo:hasEvidenceStage bmo:DiagnosticEvidenceStage ;
-    bmo:hasConfidenceAssessment bmo:FixtureDiagnosticConfidence ;
-    bmo:hasCustodyRecord bmo:FixtureCustody ;
-    up:generatedUnder bmo:FixtureRule ;
-    prov:generatedAtTime "2026-09-12T13:05:00Z"^^xsd:dateTime .
-
-# Sensor-stage confidence must state whether the model is being used within its
-# supported validation envelope.
-bmo:BlindSensorConfidence a bmo:ConfidenceAssessment ;
-    bmo:evidenceStrength bmo:ModerateEvidence ;
-    bmo:evidenceCompleteness bmo:PartialEvidence ;
-    bmo:provenanceQuality bmo:CompleteProvenance .
-
-bmo:IndicationWithBlindConfidence a bmo:SensorIndicationAssertion ;
-    bmo:concernsZone bmo:FixtureZone ;
-    bmo:derivedFromAnomaly bmo:FixtureAnomaly ;
-    bmo:hasEvidenceStage bmo:SensorIndicationStage ;
-    bmo:hasConfidenceAssessment bmo:BlindSensorConfidence ;
-    up:generatedUnder bmo:FixtureRule ;
-    prov:generatedAtTime "2026-09-12T13:10:00Z"^^xsd:dateTime .
-
-# Diagnostic-stage confidence must record assay/method applicability.
-bmo:BlindDiagnosticConfidence a bmo:ConfidenceAssessment ;
-    bmo:evidenceStrength bmo:StrongEvidence ;
-    bmo:evidenceCompleteness bmo:CompleteEvidence ;
-    bmo:provenanceQuality bmo:CompleteProvenance .
-
-bmo:DetectionWithBlindConfidence a bmo:DiagnosticDetectionAssertion ;
-    bmo:concernsZone bmo:FixtureZone ;
-    bmo:assertsPathogen bmo:FixturePathogen ;
-    bmo:derivedFromResult bmo:FixtureResult ;
-    bmo:hasEvidenceStage bmo:DiagnosticEvidenceStage ;
-    bmo:hasDiagnosticDisposition bmo:Suspected ;
-    bmo:hasConfidenceAssessment bmo:BlindDiagnosticConfidence ;
-    bmo:hasCustodyRecord bmo:FixtureCustody ;
-    up:generatedUnder bmo:FixtureRule ;
-    prov:generatedAtTime "2026-09-12T13:15:00Z"^^xsd:dateTime .
-
-# A transfer with no receiving custodian is a custody break.
-bmo:BrokenTransfer a bmo:TransferEvent ;
-    bmo:custodySubject bmo:FixtureSpecimen ;
-    bmo:fromCustodian bmo:FixtureAgent ;
-    bmo:eventAgent bmo:FixtureAgent ;
-    bmo:eventTime "2026-09-12T13:20:00Z"^^xsd:dateTime .
-
-# Dense imagery must not be expanded into the semantic graph.
-bmo:TiledImagery a bmo:ImageryReference ;
-    bmo:storageURI "s3://fixture/image"^^xsd:anyURI ;
-    bmo:checksum "fixture" ;
-    bmo:pixelValue "0.41" .
-
-# A crosswalk with no fidelity silently claims more equivalence than it knows.
-bmo:SilentCrosswalk a bmo:ReportingCrosswalk ;
-    up:crosswalkFrom bmo:Confirmed ;
-    bmo:targetScheme bmo:NPDNDiagnosticConfidenceScheme ;
-    up:crosswalkTo bmo:NPDNConfirmedTerm .
-
-# If a mapping claims non-zero fidelity it must actually name the target term.
-bmo:CrosswalkNoTarget a bmo:ReportingCrosswalk ;
-    up:crosswalkFrom bmo:Confirmed ;
-    bmo:targetScheme bmo:NPDNDiagnosticConfidenceScheme ;
-    up:fidelity up:Exact .
-
-
-# A pilot profile with no pathogen taxon cannot exercise a pathosystem.
-bmo:IncompletePilot a bmo:PilotPathosystem ;
-    bmo:hostTaxon <http://purl.obolibrary.org/obo/NCBITaxon_4530> ;
-    bmo:scenarioRole bmo:OperationalPilot .
-
-# Draft legal interpretations must never disable the human-review gate.
-bmo:UnsafeDraftRule a bmo:ReportingRule ;
-    bmo:ruleIdentifier "FIXTURE-UNSAFE-DRAFT" ;
-    bmo:appliesInJurisdiction bmo:Arkansas ;
-    bmo:regulatoryAuthority bmo:FixtureAgent ;
-    dct:source <https://example.invalid/authoritative-source> ;
-    bmo:ruleReviewStatus bmo:DraftRequiresLegalRegulatoryReview ;
-    bmo:requiresHumanReview false ;
-    bmo:legalReviewNote "Fixture deliberately violates the Phase 1 human-review requirement." .
-
-# A draft without a review note hides the unresolved legal interpretation.
-bmo:DraftRuleNoReviewNote a bmo:ReportingRule ;
-    bmo:ruleIdentifier "FIXTURE-NO-REVIEW-NOTE" ;
-    bmo:appliesInJurisdiction bmo:Texas ;
-    bmo:regulatoryAuthority bmo:FixtureAgent ;
-    dct:source <https://example.invalid/authoritative-source> ;
-    bmo:ruleReviewStatus bmo:DraftRequiresLegalRegulatoryReview ;
-    bmo:requiresHumanReview true .
+# V7 - a crosswalk asserting a mapping with no stated fidelity.
+bad:SilentCrosswalk a bmo:ReportingCrosswalk ;
+    rdfs:label "Crosswalk with unstated fidelity"@en ;
+    up:crosswalkFrom bmo:PreSymptomatic .

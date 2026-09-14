@@ -1,79 +1,23 @@
-name: ontology-ci
+name: Ontology CI
 
 on:
   push:
-    branches:
-      - main
-      - "v*"
-    paths:
-      - "schema/**"
-      - "upper/**"
-      - "vendor/**"
-      - "tests/**"
-      - "tools/**"
-      - "src/**"
-      - "examples/**"
-      - "reference/**"
-      - "rules/**"
-      - "LICENSE*"
-      - ".github/workflows/ontology-ci.yml"
   pull_request:
-    paths:
-      - "schema/**"
-      - "upper/**"
-      - "vendor/**"
-      - "tests/**"
-      - "tools/**"
-      - "src/**"
-      - "examples/**"
-      - "reference/**"
-      - "rules/**"
-      - "LICENSE*"
-      - ".github/workflows/ontology-ci.yml"
 
 jobs:
   validate:
     runs-on: ubuntu-latest
     steps:
-      - name: Check out repository
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-
-      - name: Install ontology test dependencies
-        run: python -m pip install rdflib pyshacl owlrl pytest
-
-      - name: Parse and validate ontology
-        run: |
-          python tools/validate_ontology.py \
-            schema/bmo-core.ttl \
-            schema/reporting-crosswalks.ttl \
-            --shapes schema/shapes.ttl
-
-      - name: Run adversarial tests
+          cache: pip
+      - name: Install validation dependencies
+        run: python -m pip install rdflib pyshacl owlrl pytest pyyaml markdown jinja2 jsonschema
+      - name: Validate ontology
+        run: python tools/validate_ontology.py schema/*.ttl --shapes schema/shapes.ttl
+      - name: Check documentation
+        run: python tools/check_docs.py
+      - name: Run tests
         run: python -m pytest tests/ -q
-
-      - name: Smoke-test documentation generator
-        run: |
-          python tools/schema_docs.py --schema schema --out /tmp/bmo-docs
-          test -s /tmp/bmo-docs/schema-reference.md
-          test -s /tmp/bmo-docs/class-diagram.md
-
-      - name: Parse project RDF data
-        run: |
-          python - <<'PY'
-          from pathlib import Path
-          import rdflib
-
-          paths = []
-          paths.extend(Path("examples").glob("*.ttl"))
-          paths.extend(Path("reference").glob("*.ttl"))
-          paths.extend(Path("rules").glob("**/*.ttl"))
-          for path in sorted(paths):
-              g = rdflib.Graph()
-              g.parse(path, format="turtle")
-              print(f"{path}: {len(g)} triples")
-          PY

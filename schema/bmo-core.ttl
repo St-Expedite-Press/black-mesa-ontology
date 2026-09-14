@@ -1,8 +1,7 @@
-@prefix bmo:  <https://w3id.org/black-mesa/bmo/> .
-@prefix up:   <https://w3id.org/black-mesa/upper/> .
+@prefix bmo:  <https://example.org/bmo/> .
+@prefix up:   <https://example.org/upper/> .
 @prefix obo:  <http://purl.obolibrary.org/obo/> .
 @prefix owl:  <http://www.w3.org/2002/07/owl#> .
-@prefix rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
 @prefix dct:  <http://purl.org/dc/terms/> .
@@ -12,845 +11,305 @@
 @prefix prov: <http://www.w3.org/ns/prov#> .
 
 # ===========================================================================
-# BLACK MESA SENSOR-AGNOSTIC DETECTION CORE — v0.3
+# DETECTION CORE — Phase 1 conceptual schema
 #
-# Purpose
-# -------
-# Represent the evidentiary chain from sensing through hypothesis formation,
-# targeted sampling, diagnostic analysis, scientific determination, and
-# regulatory/reporting action.
+# Pre-symptomatic agricultural pathogen detection: the chain from a sensed
+# spectral anomaly through sample collection and field assay to a detection
+# that a reporting network can consume.
 #
-# The schema is intentionally sensor-agnostic. Drone flights are one subtype of
-# survey activity. Spectral anomalies are one subtype of observed anomaly.
+# Every class here anchors to BFO 2.0 through upper/upper-core.ttl. The
+# anchoring is enforced by shapes.ttl, so no class can be added without
+# declaring what kind of thing it is.
 #
-# Non-negotiable semantic separations
-# ------------------------------------
-# 1. Observation != anomaly != hypothesis != diagnostic determination.
-# 2. Sensor indication != confirmed pathogen detection.
-# 3. Diagnostic disposition != confidence.
-# 4. Scientific detection != regulatory determination != alert.
-# 5. Specimen identity != aliquot identity.
-# 6. Custody events are explicit and time ordered.
-# 7. Raw imagery stays outside the RDF graph and is referenced by URI/checksum.
+# The four decisions this file encodes are described in the active ontology
+# documentation, especially docs/ontology/modeling-decisions.md:
+#   1. Detection is a chain of distinct objects with stated cardinalities.
+#   2. A detection is an ASSERTION carrying evidence and provenance, not a
+#      property stamped on a field.
+#   3. Confidence is multi-axis and includes a pre-symptomatic tier that no
+#      published enumeration provides.
+#   4. Raw imagery never enters the graph; it is referenced by URI and
+#      checksum from object storage.
 # ===========================================================================
 
-<https://w3id.org/black-mesa/bmo> a owl:Ontology ;
-    dct:title "Black Mesa sensor-agnostic detection core"@en ;
-    dct:creator <https://github.com/St-Expedite-Press> ;
-    dct:license <https://creativecommons.org/licenses/by/4.0/> ;
-    owl:versionIRI <https://w3id.org/black-mesa/bmo/releases/0.4.0> ;
-    owl:versionInfo "0.4.0" ;
-    owl:imports <https://w3id.org/black-mesa/upper> ;
-    rdfs:comment "Conceptual and operational schema for sensor-agnostic pre-symptomatic agricultural biosecurity detection. The graph represents evidence, provenance, hypotheses, custody, diagnostic determinations, and reporting semantics; it does not store raw imagery or replace external taxonomies."@en .
+bmo: a owl:Ontology ;
+    dct:title "Detection core"@en ;
+    owl:versionInfo "0.1" ;
+    owl:imports <https://example.org/upper/> ;
+    rdfs:comment "Phase 1 detection core. Documented conceptual schema, not a fully axiomatised ontology: the formalisation beyond this is deliberately deferred, and what is deferred is recorded rather than left implicit."@en .
 
 # ===========================================================================
-# 1. PLACES AND SPATIAL SUPPORT
+# 1. PLACES — where things are observed and sampled
+# A site in BFO is immaterial: the place, not the crop standing in it.
 # ===========================================================================
 
 bmo:Farm a owl:Class ;
     rdfs:subClassOf up:SurveyedSite ;
     rdfs:label "Farm"@en ;
-    rdfs:comment "A managed agricultural holding under one operator. Access, consent, and many reporting obligations attach at this level."@en .
+    rdfs:comment "A managed holding under one operator. The unit at which access, consent, and reporting obligations attach."@en .
 
 bmo:Field a owl:Class ;
     rdfs:subClassOf up:SurveyedSite ;
     rdfs:label "Field"@en ;
-    rdfs:comment "A bounded cultivated area within a farm, normally under a crop and management regime."@en .
+    rdfs:comment "A bounded cultivated area within a farm, normally under a single crop and management regime."@en .
 
 bmo:Zone a owl:Class ;
     rdfs:subClassOf up:SurveyedSite ;
     rdfs:label "Zone"@en ;
-    rdfs:comment "A sub-field place used for surveillance, sampling, or management. A zone is not assumed to be the finest spatial support of every observation."@en .
-
-bmo:SpatialSupportDescription a owl:Class ;
-    rdfs:subClassOf up:SupportDescription ;
-    rdfs:label "Spatial support description"@en ;
-    rdfs:comment "A description of the spatial footprint over which an observation or assertion is warranted: point, plant, row, polygon, field, raster footprint, sensor footprint, or sampling area."@en .
-
-bmo:SupportKind a owl:Class ;
-    rdfs:subClassOf up:ConceptualUnit ;
-    rdfs:label "Support kind"@en ;
-    rdfs:comment "Controlled vocabulary describing the kind of spatial support represented by a support description."@en .
-
-bmo:PointSupport a bmo:SupportKind ; rdfs:label "point"@en .
-bmo:PlantSupport a bmo:SupportKind ; rdfs:label "individual plant"@en .
-bmo:RowSupport a bmo:SupportKind ; rdfs:label "crop row"@en .
-bmo:PolygonSupport a bmo:SupportKind ; rdfs:label "polygon"@en .
-bmo:ManagementZoneSupport a bmo:SupportKind ; rdfs:label "management zone"@en .
-bmo:FieldSupport a bmo:SupportKind ; rdfs:label "field"@en .
-bmo:RasterFootprintSupport a bmo:SupportKind ; rdfs:label "raster footprint"@en .
-bmo:SensorFootprintSupport a bmo:SupportKind ; rdfs:label "sensor footprint"@en .
-bmo:SamplingAreaSupport a bmo:SupportKind ; rdfs:label "sampling area"@en .
+    rdfs:comment "A sub-field area distinguished for sampling or management. The finest place at which a detection is asserted, because asserting at field level would overstate what a point sample supports."@en .
 
 bmo:partOfSite a owl:ObjectProperty ;
     rdfs:subPropertyOf obo:BFO_0000050 ;
     rdfs:label "part of site"@en ;
-    rdfs:comment "Spatial containment among surveyed sites, for example zone to field and field to farm."@en ;
+    rdfs:comment "Zone to field, field to farm. A specialisation of BFO part-of rather than a parallel containment relation."@en ;
     rdfs:domain up:SurveyedSite ; rdfs:range up:SurveyedSite .
 
-bmo:hasSpatialSupport a owl:ObjectProperty ;
-    rdfs:label "has spatial support"@en ;
-    rdfs:comment "Links an information artifact to the explicit description of the area, point, plant, row, or footprint over which it is warranted."@en ;
-    rdfs:domain up:InformationArtifact ; rdfs:range bmo:SpatialSupportDescription .
-
-bmo:supportKind a owl:ObjectProperty ;
-    rdfs:label "support kind"@en ;
-    rdfs:domain bmo:SpatialSupportDescription ; rdfs:range bmo:SupportKind .
-
 # ===========================================================================
-# 2. SENSOR-AGNOSTIC SURVEILLANCE
+# 2. PROCESSES — the acts that make up the chain
 # ===========================================================================
-
-bmo:SurveyActivity a owl:Class ;
-    rdfs:subClassOf up:ObservationProcess ;
-    rdfs:label "Survey activity"@en ;
-    rdfs:comment "A surveillance activity using one or more sensors or observation procedures over one or more sites. It is intentionally independent of platform and sensor modality."@en .
 
 bmo:Flight a owl:Class ;
-    rdfs:subClassOf bmo:SurveyActivity ;
+    rdfs:subClassOf up:ObservationProcess ;
     rdfs:label "Flight"@en ;
-    rdfs:comment "An aerial survey sortie. Retained as a subtype because drones are an expected early platform, but the core ontology does not depend on flight."@en .
+    rdfs:comment """A single sortie over one or more sites, producing imagery and zero or more anomaly records.
 
-bmo:SensorObservation a owl:Class ;
-    rdfs:subClassOf up:ObservationProcess, sosa:Observation ;
-    rdfs:label "Sensor observation"@en ;
-    rdfs:comment "An observation made by a sensing device under a procedure. The observation is an event; its result and later interpretation are separate."@en .
-
-bmo:ObservedAnomaly a owl:Class ;
-    rdfs:subClassOf up:DerivedDatum ;
-    rdfs:label "Observed anomaly"@en ;
-    rdfs:comment "A derived record that some observation differs from an expected or reference condition. It is evidence that something warrants investigation, not a diagnosis."@en .
-
-bmo:SpectralAnomaly a owl:Class ;
-    rdfs:subClassOf bmo:ObservedAnomaly ;
-    rdfs:label "Spectral anomaly"@en ;
-    rdfs:comment "An observed anomaly derived specifically from spectral data. This subtype preserves the original drone use case without making spectral sensing part of the core contract."@en .
-
-bmo:ImageryReference a owl:Class ;
-    rdfs:subClassOf up:InformationArtifact ;
-    rdfs:label "Imagery reference"@en ;
-    rdfs:comment "A pointer to imagery or another large sensor artifact held outside the RDF graph. It carries a storage URI and content checksum so the evidence bytes can be retrieved and verified."@en .
-
-bmo:usesSensor a owl:ObjectProperty ;
-    rdfs:label "uses sensor"@en ;
-    rdfs:comment "The sensor used during a survey or observation. External sensor descriptions should use SOSA/SSN rather than a Black Mesa sensor taxonomy."@en ;
-    rdfs:domain bmo:SurveyActivity ; rdfs:range sosa:Sensor .
-
-bmo:hostedByPlatform a owl:ObjectProperty ;
-    rdfs:label "hosted by platform"@en ;
-    rdfs:comment "The physical platform carrying the sensor, such as a UAS, ground vehicle, fixed station, aircraft, or other host."@en ;
-    rdfs:domain bmo:SurveyActivity ; rdfs:range sosa:Platform .
-
-bmo:madeObservation a owl:ObjectProperty ;
-    rdfs:label "made observation"@en ;
-    rdfs:domain bmo:SurveyActivity ; rdfs:range bmo:SensorObservation .
-
-bmo:observedAnomaly a owl:ObjectProperty ;
-    rdfs:label "observed anomaly"@en ;
-    rdfs:comment "A survey may yield zero or more anomaly records. Zero is a meaningful negative surveillance outcome, not missing data."@en ;
-    rdfs:domain bmo:SurveyActivity ; rdfs:range bmo:ObservedAnomaly .
-
-bmo:derivedFromObservation a owl:ObjectProperty ;
-    rdfs:subPropertyOf prov:wasDerivedFrom ;
-    rdfs:label "derived from observation"@en ;
-    rdfs:domain bmo:ObservedAnomaly ; rdfs:range bmo:SensorObservation .
-
-bmo:referencesImagery a owl:ObjectProperty ;
-    rdfs:label "references imagery"@en ;
-    rdfs:comment "Links an anomaly to the external imagery or sensor artifact from which it was derived. Raw imagery is referenced, never tiled into the graph."@en ;
-    rdfs:domain bmo:ObservedAnomaly ; rdfs:range bmo:ImageryReference .
-
-bmo:storageURI a owl:DatatypeProperty ;
-    rdfs:label "storage URI"@en ;
-    rdfs:domain bmo:ImageryReference ; rdfs:range xsd:anyURI .
-
-bmo:checksum a owl:DatatypeProperty ;
-    rdfs:label "checksum"@en ;
-    rdfs:comment "Content hash used to verify that a reference resolves to the exact bytes that were analyzed."@en ;
-    rdfs:domain bmo:ImageryReference ; rdfs:range xsd:string .
-
-# ===========================================================================
-# 3. HYPOTHESES, CANDIDATES, AND NEXT-BEST ACTION
-# ===========================================================================
-
-bmo:DiagnosticHypothesis a owl:Class ;
-    rdfs:subClassOf up:Assertion ;
-    rdfs:label "Diagnostic hypothesis"@en ;
-    rdfs:comment "A revisable hypothesis about the cause of an observed anomaly. It may concern a pathogen, an abiotic stressor, or another causal agent and is explicitly not a detection."@en .
-
-bmo:DiagnosticCandidateSet a owl:Class ;
-    rdfs:subClassOf up:CandidateSet ;
-    rdfs:label "Diagnostic candidate set"@en ;
-    rdfs:comment "The live competing hypotheses retained by the system at a point in the evidence-gathering workflow."@en .
-
-bmo:ObservationRequirement a owl:Class ;
-    rdfs:subClassOf up:RequirementSpecification ;
-    rdfs:label "Observation requirement"@en ;
-    rdfs:comment "A request for the observation that would most reduce uncertainty among live hypotheses."@en .
-
-bmo:SamplingRecommendation a owl:Class ;
-    rdfs:subClassOf up:RequirementSpecification ;
-    rdfs:label "Sampling recommendation"@en ;
-    rdfs:comment "A directive specifying what material should be collected, where, and why. It is generated from evidence and hypotheses rather than hard-coded to a sensor modality."@en .
-
-bmo:hasCandidate a owl:ObjectProperty ;
-    rdfs:label "has candidate"@en ;
-    rdfs:domain bmo:DiagnosticCandidateSet ; rdfs:range bmo:DiagnosticHypothesis .
-
-bmo:hypothesizesAgent a owl:ObjectProperty ;
-    rdfs:label "hypothesizes agent"@en ;
-    rdfs:comment "The organism, abiotic cause, or other agent proposed by a diagnostic hypothesis. Canonical external identifiers should be used where available."@en ;
-    rdfs:domain bmo:DiagnosticHypothesis ; rdfs:range rdfs:Resource .
-
-bmo:candidateProbability a owl:DatatypeProperty ;
-    rdfs:label "candidate probability"@en ;
-    rdfs:comment "Optional calibrated probability attached to a hypothesis only when produced by a calibrated model. It must not be invented from an ordinal rank."@en ;
-    rdfs:domain bmo:DiagnosticHypothesis ; rdfs:range xsd:decimal .
-
-bmo:candidateRank a owl:DatatypeProperty ;
-    rdfs:label "candidate rank"@en ;
-    rdfs:comment "Ordinal rank among candidates. A rank is not a probability."@en ;
-    rdfs:domain bmo:DiagnosticHypothesis ; rdfs:range xsd:integer .
-
-bmo:expectedInformationGain a owl:DatatypeProperty ;
-    rdfs:label "expected information gain"@en ;
-    rdfs:comment "Optional estimate of how much a requested observation is expected to reduce uncertainty among live candidates."@en ;
-    rdfs:domain up:RequirementSpecification ; rdfs:range xsd:decimal .
-
-bmo:expectedCost a owl:DatatypeProperty ;
-    rdfs:label "expected cost"@en ;
-    rdfs:comment "Optional cost estimate used by the decision layer when comparing next-best observations or actions."@en ;
-    rdfs:domain up:RequirementSpecification ; rdfs:range xsd:decimal .
-
-# ===========================================================================
-# 4. SAMPLING, SPECIMENS, ALIQUOTS, AND LEGALLY DEFENSIBLE CUSTODY
-# ===========================================================================
-
-bmo:CustodyEvent a owl:Class ;
-    rdfs:subClassOf up:RecordedProcess ;
-    rdfs:label "Custody event"@en ;
-    rdfs:comment "A recorded event affecting possession, location, identity, or integrity of a specimen or aliquot. Custody is represented as explicit events, not a single opaque provenance string."@en .
+Zero is the important cardinality: a sortie that finds nothing is a recorded event with a negative result, not an absence of data. Without it nobody can say how much of a season was surveyed."""@en .
 
 bmo:SampleCollection a owl:Class ;
-    rdfs:subClassOf up:SamplingProcess, bmo:CustodyEvent ;
+    rdfs:subClassOf up:SamplingProcess ;
     rdfs:label "Sample collection"@en ;
-    rdfs:comment "The act of removing material from a site or host and creating a specimen with a persistent identity. It is simultaneously a sampling process and the first custody event."@en .
+    rdfs:comment "The act of the sampling arm removing plant or soil material at a zone, producing a specimen."@en .
 
-bmo:TransferEvent a owl:Class ;
-    rdfs:subClassOf bmo:CustodyEvent ;
-    rdfs:label "Transfer event"@en ;
-    rdfs:comment "A custody event in which possession of a specimen or aliquot passes from one custodian to another."@en .
-
-bmo:ReceiptEvent a owl:Class ;
-    rdfs:subClassOf bmo:CustodyEvent ;
-    rdfs:label "Receipt event"@en ;
-    rdfs:comment "A custody event recording receipt by a laboratory, facility, or other custodian."@en .
-
-bmo:StorageEvent a owl:Class ;
-    rdfs:subClassOf bmo:CustodyEvent ;
-    rdfs:label "Storage event"@en ;
-    rdfs:comment "A custody event recording controlled storage of a specimen or aliquot under stated conditions."@en .
-
-bmo:AliquotEvent a owl:Class ;
-    rdfs:subClassOf bmo:CustodyEvent ;
-    rdfs:label "Aliquot event"@en ;
-    rdfs:comment "A custody event in which one specimen is subdivided into one or more aliquots while preserving genealogy back to the source specimen."@en .
+bmo:Assay a owl:Class ;
+    rdfs:subClassOf up:AnalysisProcess ;
+    rdfs:label "Assay"@en ;
+    rdfs:comment "The confirmation analysis performed on a specimen, producing an assay result. Aligned with OBI's assay, which is likewise a planned process."@en ;
+    rdfs:seeAlso obo:OBI_0000070 .
 
 bmo:CustodyChain a owl:Class ;
     rdfs:subClassOf up:ProvenanceChain ;
     rdfs:label "Custody chain"@en ;
-    rdfs:comment "The real sequence of custody-related processes from collection through transfer, receipt, storage, analysis, and disposition."@en .
+    rdfs:comment """The ordered whole of the acts producing a detection: flight, anomaly registration, collection, transfer, assay.
 
-bmo:CustodyRecord a owl:Class ;
-    rdfs:subClassOf up:InformationArtifact ;
-    rdfs:label "Custody record"@en ;
-    rdfs:comment "The legally relevant information record describing a custody chain. It identifies custody events, their order, agents, timestamps, containers, seals, and integrity observations."@en .
+A process aggregate, not a document. A detection that cannot be resolved back along this chain is not evidence, and retrofitting the chain onto records created without it is what makes early records unusable."""@en .
+
+# ===========================================================================
+# 3. MATERIAL — what is physically handled
+# ===========================================================================
 
 bmo:Specimen a owl:Class ;
     rdfs:subClassOf up:Specimen ;
     rdfs:label "Specimen"@en ;
-    rdfs:comment "Material removed from a sampling target and assigned a persistent identity. The specimen remains distinct from any data or diagnosis produced about it."@en .
-
-bmo:Aliquot a owl:Class ;
-    rdfs:subClassOf bmo:Specimen ;
-    rdfs:label "Aliquot"@en ;
-    rdfs:comment "A physically separated portion of a specimen that has its own identity and custody history while remaining genealogically linked to the source specimen."@en .
+    rdfs:comment "Plant or soil material removed from a zone and held in a container. A material entity with its own identity: the same specimen can be split, re-assayed, or lost, and each of those is a fact about the specimen rather than about the zone."@en .
 
 bmo:Container a owl:Class ;
     rdfs:subClassOf obo:BFO_0000030 ;
     rdfs:label "Container"@en ;
-    rdfs:comment "The physical vessel holding a specimen or aliquot. Container identity may be required to establish continuity of custody."@en .
+    rdfs:comment "The vessel a specimen is held in. Tracked because container identity is how custody is demonstrated between collection and assay."@en .
 
 bmo:Host a owl:Class ;
     rdfs:subClassOf obo:BFO_0000027 ;
     rdfs:label "Host population"@en ;
-    rdfs:comment "The crop plants occupying a surveyed site. Taxonomic identity should be referenced to an external authority rather than replicated as local classes."@en .
+    rdfs:comment "The crop plants occupying a zone. An object aggregate; the taxon it instantiates is referenced by NCBITaxon IRI rather than restated here."@en .
+
+# ===========================================================================
+# 4. INFORMATION — what the system records and concludes
+# ===========================================================================
+
+bmo:SpectralAnomaly a owl:Class ;
+    rdfs:subClassOf up:DerivedDatum ;
+    rdfs:label "Spectral anomaly"@en ;
+    rdfs:comment """A record of a deviation detected in sensed imagery, localised to a zone.
+
+Information, not a material condition: the anomaly is a pattern found in data that may or may not correspond to anything in the field. Treating it as a condition of the crop is the first place this domain slips from evidence into conclusion."""@en .
+
+bmo:AssayResult a owl:Class ;
+    rdfs:subClassOf obo:IAO_0000109 ;
+    rdfs:label "Assay result"@en ;
+    rdfs:comment "The datum produced by an assay: a determination for a target pathogen, with the assay's own detection limit and validity conditions attached."@en .
+
+bmo:Detection a owl:Class ;
+    rdfs:subClassOf up:Assertion ;
+    rdfs:label "Detection"@en ;
+    rdfs:comment """The assertion that a pathogen is present at a zone at a time.
+
+Not a property of the zone, not a flag on a sample, not a row in a results table. An assertion carrying what concluded it, from what evidence, under which rule version, and with what confidence - because a detection that cannot be explained cannot be reviewed, and a rule change must not silently rewrite conclusions already drawn."""@en .
+
+bmo:Alert a owl:Class ;
+    rdfs:subClassOf obo:IAO_0000033 ;
+    rdfs:label "Alert"@en ;
+    rdfs:comment """A directive issued to a recipient on the basis of one or more detections.
+
+Deliberately separate from Detection and joined by a defeasible link. Raising an alert has consequences for a grower, a programme, and possibly a market, and that decision is not the same claim as the determination that a pathogen is present. Keeping them apart lets alerting policy change without rewriting the diagnostic record."""@en .
+
+bmo:ImageryReference a owl:Class ;
+    rdfs:subClassOf up:InformationArtifact ;
+    rdfs:label "Imagery reference"@en ;
+    rdfs:comment """A pointer to imagery held in object storage: a URI, a checksum, and the capture parameters needed to interpret it.
+
+THE GRAPH BOUNDARY. Raw spectral imagery is never tiled into the graph. The graph retains the reference and provenance needed to locate the bytes, while raw imagery remains in an external storage system. This is a conceptual boundary, not a benchmark or storage implementation claim."""@en .
+
+bmo:ConfidenceAssessment a owl:Class ;
+    rdfs:subClassOf up:ConfidenceAssessment ;
+    rdfs:label "Confidence assessment"@en ;
+    rdfs:comment "The multi-axis confidence attached to a detection. A single number cannot distinguish a calibrated model output from an expert guess rendered as a decimal."@en .
+
+bmo:ConfidenceTier a owl:Class ;
+    rdfs:subClassOf up:ConceptualUnit ;
+    rdfs:label "Confidence tier"@en ;
+    rdfs:comment "A term in the adopted diagnostic confidence enumeration, extended with the pre-symptomatic tier."@en .
+
+bmo:DetectionLimit a owl:Class ;
+    rdfs:subClassOf up:ThresholdSpecification ;
+    rdfs:label "Detection limit"@en ;
+    rdfs:comment "The concentration below which an assay cannot distinguish presence from absence. A specification: chosen and validated rather than discovered, so it carries its validation evidence."@en .
+
+bmo:ObservationRequirement a owl:Class ;
+    rdfs:subClassOf up:RequirementSpecification ;
+    rdfs:label "Observation requirement"@en ;
+    rdfs:comment "A request for the observation that would most reduce uncertainty: target property, required accuracy, spatial support, purpose, acceptable methods. Observer-neutral by construction."@en .
+
+bmo:ReportingCrosswalk a owl:Class ;
+    rdfs:subClassOf up:Crosswalk ;
+    rdfs:label "Reporting crosswalk"@en ;
+    rdfs:comment "A mapping from an internal term to an external reporting vocabulary, carrying direction and fidelity. Entries with fidelity up:NoMapping are the valuable output: the pre-symptomatic tier is the known case."@en .
+
+# ===========================================================================
+# 5. THE CONFIDENCE ENUMERATION
+#
+# The four adopted levels retain their published meaning; the pre-symptomatic
+# tier is added below them and is the one term here that no external
+# vocabulary provides.
+# ===========================================================================
+
+bmo:Confirmed a bmo:ConfidenceTier ;
+    rdfs:label "Confirmed"@en ; skos:notation "CONF" ;
+    bmo:tierRank 1 ; bmo:presupposesSymptoms true ;
+    rdfs:comment "Adopted level. Diagnosis established to the standard the receiving network requires."@en .
+
+bmo:Suspected a bmo:ConfidenceTier ;
+    rdfs:label "Suspected"@en ; skos:notation "SUSP" ;
+    bmo:tierRank 2 ; bmo:presupposesSymptoms true ;
+    rdfs:comment "Adopted level. PRESUPPOSES VISIBLE SYMPTOMS - which is precisely why it cannot absorb a pre-symptomatic indication."@en .
+
+bmo:NotDetected a bmo:ConfidenceTier ;
+    rdfs:label "Not detected"@en ; skos:notation "ND" ;
+    bmo:tierRank 4 ; bmo:presupposesSymptoms false ;
+    rdfs:comment "Adopted level. The assay ran and returned negative, which is not the same as not having looked."@en .
+
+bmo:Undetermined a bmo:ConfidenceTier ;
+    rdfs:label "Undetermined"@en ; skos:notation "UND" ;
+    bmo:tierRank 5 ; bmo:presupposesSymptoms false ;
+    rdfs:comment "Adopted level. The assay ran and could not conclude."@en .
+
+bmo:PreSymptomatic a bmo:ConfidenceTier ;
+    rdfs:label "Pre-symptomatic indication"@en ; skos:notation "PRESYM" ;
+    bmo:tierRank 3 ; bmo:presupposesSymptoms false ;
+    up:epistemicStatus up:Hypothesis ;
+    rdfs:comment """THE INVENTED TERM. A sensor-derived indication that a sample is warranted, carrying no claim that disease is present.
+
+It licenses sampling and nothing else. It is NOT a weaker 'suspected': it is a different kind of claim, made on different evidence, warranting a different action, and modelling it as a lower value on the same scale would let it be compared numerically against claims it is not commensurate with.
+
+It is also the term most at risk at every integration boundary, because mapping it to the nearest existing bucket is locally reasonable every time and cumulatively destroys the platform's distinguishing output. The schema cannot prevent that; it can only make the loss explicit through a ReportingCrosswalk with fidelity up:NoMapping."""@en .
+
+bmo:tierRank a owl:DatatypeProperty ;
+    rdfs:label "tier rank"@en ;
+    rdfs:comment "Ordering within the enumeration. Ranks are not a probability scale and must not be arithmetic."@en ;
+    rdfs:domain bmo:ConfidenceTier ; rdfs:range xsd:integer .
+
+bmo:presupposesSymptoms a owl:DatatypeProperty ;
+    rdfs:label "presupposes symptoms"@en ;
+    rdfs:comment "Whether the tier can only be reached once symptoms are visible. The property that makes the gap in the adopted enumeration machine-readable."@en ;
+    rdfs:domain bmo:ConfidenceTier ; rdfs:range xsd:boolean .
+
+# ===========================================================================
+# 6. THE CHAIN — relations, with cardinality carried by the shapes
+# ===========================================================================
+
+bmo:producedAnomaly a owl:ObjectProperty ;
+    rdfs:subPropertyOf obo:RO_0002234 ;
+    rdfs:label "produced anomaly"@en ;
+    rdfs:comment "Flight to spectral anomaly. Zero or more."@en ;
+    rdfs:domain bmo:Flight ; rdfs:range bmo:SpectralAnomaly .
+
+bmo:triggeredCollection a owl:ObjectProperty ;
+    rdfs:label "triggered collection"@en ;
+    rdfs:comment "Anomaly to the collection act it prompted. Exactly one."@en ;
+    rdfs:domain bmo:SpectralAnomaly ; rdfs:range bmo:SampleCollection .
 
 bmo:yieldedSpecimen a owl:ObjectProperty ;
     rdfs:subPropertyOf obo:RO_0002234 ;
     rdfs:label "yielded specimen"@en ;
     rdfs:domain bmo:SampleCollection ; rdfs:range bmo:Specimen .
 
-bmo:occursAtZone a owl:ObjectProperty ;
-    rdfs:label "occurs at zone"@en ;
-    rdfs:domain up:RecordedProcess ; rdfs:range bmo:Zone .
-
-bmo:custodySubject a owl:ObjectProperty ;
-    rdfs:label "custody subject"@en ;
-    rdfs:comment "The specimen or aliquot whose custody is affected by an event."@en ;
-    rdfs:domain bmo:CustodyEvent ; rdfs:range bmo:Specimen .
-
-bmo:fromCustodian a owl:ObjectProperty ;
-    rdfs:label "from custodian"@en ;
-    rdfs:domain bmo:CustodyEvent ; rdfs:range prov:Agent .
-
-bmo:toCustodian a owl:ObjectProperty ;
-    rdfs:label "to custodian"@en ;
-    rdfs:domain bmo:CustodyEvent ; rdfs:range prov:Agent .
-
-bmo:eventAgent a owl:ObjectProperty ;
-    rdfs:label "event agent"@en ;
-    rdfs:comment "The person, organization, device, or service responsible for recording or performing the event."@en ;
-    rdfs:domain up:RecordedProcess ; rdfs:range prov:Agent .
-
-bmo:eventTime a owl:DatatypeProperty ;
-    rdfs:label "event time"@en ;
-    rdfs:comment "Timestamp of a physical or recorded process event."@en ;
-    rdfs:domain up:RecordedProcess ; rdfs:range xsd:dateTime .
-
-bmo:previousCustodyEvent a owl:ObjectProperty ;
-    rdfs:label "previous custody event"@en ;
-    rdfs:comment "The immediately preceding custody event for the same specimen or aliquot. Used to expose breaks in continuity rather than hiding them."@en ;
-    rdfs:domain bmo:CustodyEvent ; rdfs:range bmo:CustodyEvent .
-
-bmo:hasCustodyEvent a owl:ObjectProperty ;
-    rdfs:label "has custody event"@en ;
-    rdfs:domain bmo:CustodyRecord ; rdfs:range bmo:CustodyEvent .
-
-bmo:describesCustodyChain a owl:ObjectProperty ;
-    rdfs:label "describes custody chain"@en ;
-    rdfs:domain bmo:CustodyRecord ; rdfs:range bmo:CustodyChain .
-
-bmo:sourceSpecimen a owl:ObjectProperty ;
-    rdfs:label "source specimen"@en ;
-    rdfs:domain bmo:AliquotEvent ; rdfs:range bmo:Specimen .
-
-bmo:producedAliquot a owl:ObjectProperty ;
-    rdfs:label "produced aliquot"@en ;
-    rdfs:domain bmo:AliquotEvent ; rdfs:range bmo:Aliquot .
-
-bmo:containerIdentifier a owl:DatatypeProperty ;
-    rdfs:label "container identifier"@en ;
-    rdfs:domain bmo:CustodyEvent ; rdfs:range xsd:string .
-
-bmo:sealIdentifier a owl:DatatypeProperty ;
-    rdfs:label "seal identifier"@en ;
-    rdfs:domain bmo:CustodyEvent ; rdfs:range xsd:string .
-
-bmo:tamperStatus a owl:DatatypeProperty ;
-    rdfs:label "tamper status"@en ;
-    rdfs:comment "Recorded integrity status of a container or seal at a custody event. A controlled vocabulary may replace the literal when operational requirements settle."@en ;
-    rdfs:domain bmo:CustodyEvent ; rdfs:range xsd:string .
-
-# ===========================================================================
-# 5. DIAGNOSTIC PROCEDURES AND RESULTS
-# ===========================================================================
-
-bmo:DiagnosticProcedure a owl:Class ;
-    rdfs:subClassOf up:AnalysisProcess ;
-    rdfs:label "Diagnostic procedure"@en ;
-    rdfs:comment "An analysis process performed on a specimen or aliquot to produce diagnostic evidence. It is method-agnostic and may include molecular, serological, morphological, culture, sequencing, or future methods."@en .
-
-bmo:Assay a owl:Class ;
-    rdfs:subClassOf bmo:DiagnosticProcedure ;
-    rdfs:label "Assay"@en ;
-    rdfs:comment "A diagnostic procedure implemented as an assay. Retained for compatibility with the original Phase 1 model."@en ;
-    rdfs:seeAlso obo:OBI_0000070 .
-
-bmo:DiagnosticResult a owl:Class ;
-    rdfs:subClassOf obo:IAO_0000109 ;
-    rdfs:label "Diagnostic result"@en ;
-    rdfs:comment "The result datum generated by a diagnostic procedure. A result is distinct from the later interpretation or detection assertion based on it."@en .
-
-bmo:AssayResult a owl:Class ;
-    rdfs:subClassOf bmo:DiagnosticResult ;
-    rdfs:label "Assay result"@en ;
-    rdfs:comment "A diagnostic result produced specifically by an assay."@en .
-
-bmo:DiagnosticProcedureProfile a owl:Class ;
-    rdfs:subClassOf up:InformationArtifact ;
-    rdfs:label "Diagnostic procedure profile"@en ;
-    rdfs:comment "A versioned description of where a diagnostic method is validated and how it performs: target organism, host, specimen matrix, sensitivity, specificity, limit of detection, and source of validation."@en .
-
-bmo:DetectionLimit a owl:Class ;
-    rdfs:subClassOf up:ThresholdSpecification ;
-    rdfs:label "Detection limit"@en ;
-    rdfs:comment "A validated threshold below which a procedure cannot reliably distinguish presence from absence."@en .
-
-bmo:DiagnosticResultStatus a owl:Class ;
-    rdfs:subClassOf up:ConceptualUnit ;
-    rdfs:label "Diagnostic result status"@en ;
-    rdfs:comment "Status of the result produced by a diagnostic procedure. It is not the same thing as an overall diagnostic disposition."@en .
-
-bmo:PositiveResult a bmo:DiagnosticResultStatus ; rdfs:label "positive"@en .
-bmo:NegativeResult a bmo:DiagnosticResultStatus ; rdfs:label "negative"@en .
-bmo:InconclusiveResult a bmo:DiagnosticResultStatus ; rdfs:label "inconclusive"@en .
-bmo:BelowDetectionLimitResult a bmo:DiagnosticResultStatus ; rdfs:label "below detection limit"@en .
-
-bmo:usedSpecimen a owl:ObjectProperty ;
+bmo:assayed a owl:ObjectProperty ;
     rdfs:subPropertyOf obo:RO_0002233 ;
-    rdfs:label "used specimen"@en ;
-    rdfs:domain bmo:DiagnosticProcedure ; rdfs:range bmo:Specimen .
+    rdfs:label "assayed"@en ;
+    rdfs:comment "The assay takes the specimen as input."@en ;
+    rdfs:domain bmo:Assay ; rdfs:range bmo:Specimen .
 
 bmo:producedResult a owl:ObjectProperty ;
     rdfs:subPropertyOf obo:RO_0002234 ;
     rdfs:label "produced result"@en ;
-    rdfs:domain bmo:DiagnosticProcedure ; rdfs:range bmo:DiagnosticResult .
+    rdfs:domain bmo:Assay ; rdfs:range bmo:AssayResult .
 
-bmo:producedByProcedure a owl:ObjectProperty ;
-    rdfs:label "produced by procedure"@en ;
-    owl:inverseOf bmo:producedResult ;
-    rdfs:domain bmo:DiagnosticResult ; rdfs:range bmo:DiagnosticProcedure .
-
-bmo:resultStatus a owl:ObjectProperty ;
-    rdfs:label "result status"@en ;
-    rdfs:domain bmo:DiagnosticResult ; rdfs:range bmo:DiagnosticResultStatus .
-
-bmo:profilesMethod a owl:ObjectProperty ;
-    rdfs:label "profiles method"@en ;
-    rdfs:comment "The diagnostic method or procedure specification described by a validation profile."@en ;
-    rdfs:domain bmo:DiagnosticProcedureProfile ; rdfs:range rdfs:Resource .
-
-bmo:validatedForPathogen a owl:ObjectProperty ;
-    rdfs:label "validated for pathogen"@en ;
-    rdfs:domain bmo:DiagnosticProcedureProfile ; rdfs:range rdfs:Resource .
-
-bmo:validatedForHost a owl:ObjectProperty ;
-    rdfs:label "validated for host"@en ;
-    rdfs:domain bmo:DiagnosticProcedureProfile ; rdfs:range rdfs:Resource .
-
-bmo:validatedForMatrix a owl:ObjectProperty ;
-    rdfs:label "validated for specimen matrix"@en ;
-    rdfs:domain bmo:DiagnosticProcedureProfile ; rdfs:range rdfs:Resource .
-
-bmo:sensitivity a owl:DatatypeProperty ;
-    rdfs:label "sensitivity"@en ;
-    rdfs:domain bmo:DiagnosticProcedureProfile ; rdfs:range xsd:decimal .
-
-bmo:specificity a owl:DatatypeProperty ;
-    rdfs:label "specificity"@en ;
-    rdfs:domain bmo:DiagnosticProcedureProfile ; rdfs:range xsd:decimal .
-
-bmo:hasDetectionLimit a owl:ObjectProperty ;
-    rdfs:label "has detection limit"@en ;
-    rdfs:domain bmo:DiagnosticProcedureProfile ; rdfs:range bmo:DetectionLimit .
-
-bmo:validationSource a owl:ObjectProperty ;
-    rdfs:label "validation source"@en ;
-    rdfs:domain bmo:DiagnosticProcedureProfile ; rdfs:range rdfs:Resource .
-
-# ===========================================================================
-# 6. EVIDENCE STAGE, DIAGNOSTIC DISPOSITION, AND CONFIDENCE
-# ===========================================================================
-
-bmo:EvidenceStage a owl:Class ;
-    rdfs:subClassOf up:ConceptualUnit ;
-    rdfs:label "Evidence stage"@en ;
-    rdfs:comment "Where an assertion sits in the evidence-gathering workflow. This is not a confidence scale."@en .
-
-bmo:SensorIndicationStage a bmo:EvidenceStage ; rdfs:label "sensor indication"@en .
-bmo:FieldObservationStage a bmo:EvidenceStage ; rdfs:label "field observation"@en .
-bmo:SpecimenEvidenceStage a bmo:EvidenceStage ; rdfs:label "specimen evidence"@en .
-bmo:DiagnosticEvidenceStage a bmo:EvidenceStage ; rdfs:label "diagnostic evidence"@en .
-bmo:ConfirmatoryEvidenceStage a bmo:EvidenceStage ; rdfs:label "confirmatory evidence"@en .
-
-bmo:DiagnosticDisposition a owl:Class ;
-    rdfs:subClassOf up:ConceptualUnit ;
-    rdfs:label "Diagnostic disposition"@en ;
-    rdfs:comment "Overall diagnostic status of a pathogen determination. These values are kept separate from evidence stage and from quantitative or qualitative confidence."@en .
-
-bmo:Confirmed a bmo:DiagnosticDisposition ;
-    rdfs:label "Confirmed"@en ; skos:notation "CONF" ;
-    rdfs:comment "Diagnosis established to the applicable diagnostic standard."@en .
-
-bmo:Suspected a bmo:DiagnosticDisposition ;
-    rdfs:label "Suspected"@en ; skos:notation "SUSP" ;
-    rdfs:comment "A diagnosis for which relevant symptoms or evidence support a causal agent but confirmation has not been achieved."@en .
-
-bmo:NotDetected a bmo:DiagnosticDisposition ;
-    rdfs:label "Not detected"@en ; skos:notation "ND" ;
-    rdfs:comment "The target was not detected by the diagnostic work performed. This does not assert biological absence outside the tested specimen and method limits."@en .
-
-bmo:Undetermined a bmo:DiagnosticDisposition ;
-    rdfs:label "Undetermined"@en ; skos:notation "UND" ;
-    rdfs:comment "Available diagnostic work does not support a determination."@en .
-
-bmo:ConfidenceAssessment a owl:Class ;
-    rdfs:subClassOf up:ConfidenceAssessment ;
-    rdfs:label "Confidence assessment"@en ;
-    rdfs:comment "A multi-axis statement of how much weight an assertion can bear. Confidence is not collapsed into a single ordinal tier."@en .
-
-bmo:EvidenceStrengthLevel a owl:Class ;
-    rdfs:subClassOf up:ConceptualUnit ;
-    rdfs:label "Evidence strength level"@en ;
-    rdfs:comment "Controlled vocabulary for qualitative strength of evidence supporting an assertion."@en .
-bmo:WeakEvidence a bmo:EvidenceStrengthLevel ; rdfs:label "weak"@en .
-bmo:ModerateEvidence a bmo:EvidenceStrengthLevel ; rdfs:label "moderate"@en .
-bmo:StrongEvidence a bmo:EvidenceStrengthLevel ; rdfs:label "strong"@en .
-bmo:VeryStrongEvidence a bmo:EvidenceStrengthLevel ; rdfs:label "very strong"@en .
-
-bmo:EvidenceCompletenessLevel a owl:Class ;
-    rdfs:subClassOf up:ConceptualUnit ;
-    rdfs:label "Evidence completeness level"@en ;
-    rdfs:comment "Controlled vocabulary for how complete the desired evidentiary record is."@en .
-bmo:IncompleteEvidence a bmo:EvidenceCompletenessLevel ; rdfs:label "incomplete"@en .
-bmo:PartialEvidence a bmo:EvidenceCompletenessLevel ; rdfs:label "partial"@en .
-bmo:SubstantialEvidence a bmo:EvidenceCompletenessLevel ; rdfs:label "substantial"@en .
-bmo:CompleteEvidence a bmo:EvidenceCompletenessLevel ; rdfs:label "complete"@en .
-
-bmo:ApplicabilityStatus a owl:Class ;
-    rdfs:subClassOf up:ConceptualUnit ;
-    rdfs:label "Applicability status"@en ;
-    rdfs:comment "Controlled vocabulary for whether a model or diagnostic method is being used within supported validation conditions."@en .
-bmo:ValidatedApplicability a bmo:ApplicabilityStatus ; rdfs:label "validated"@en .
-bmo:PartialApplicability a bmo:ApplicabilityStatus ; rdfs:label "partially validated"@en .
-bmo:OutOfScopeApplicability a bmo:ApplicabilityStatus ; rdfs:label "outside validated scope"@en .
-bmo:UnknownApplicability a bmo:ApplicabilityStatus ; rdfs:label "unknown"@en .
-
-bmo:ProvenanceQualityStatus a owl:Class ;
-    rdfs:subClassOf up:ConceptualUnit ;
-    rdfs:label "Provenance quality status"@en ;
-    rdfs:comment "Controlled vocabulary for the integrity and completeness of the provenance and custody record."@en .
-bmo:CompleteProvenance a bmo:ProvenanceQualityStatus ; rdfs:label "complete"@en .
-bmo:MinorProvenanceGap a bmo:ProvenanceQualityStatus ; rdfs:label "minor gap"@en .
-bmo:MajorProvenanceGap a bmo:ProvenanceQualityStatus ; rdfs:label "major gap"@en .
-bmo:CompromisedProvenance a bmo:ProvenanceQualityStatus ; rdfs:label "compromised"@en .
-
-bmo:hasEvidenceStage a owl:ObjectProperty ;
-    rdfs:label "has evidence stage"@en ;
-    rdfs:domain up:Assertion ; rdfs:range bmo:EvidenceStage .
-
-bmo:hasDiagnosticDisposition a owl:ObjectProperty ;
-    rdfs:label "has diagnostic disposition"@en ;
-    rdfs:domain up:Assertion ; rdfs:range bmo:DiagnosticDisposition .
-
-bmo:hasConfidenceAssessment a owl:ObjectProperty ;
-    rdfs:subPropertyOf up:hasConfidence ;
-    rdfs:label "has confidence assessment"@en ;
-    rdfs:domain up:Assertion ; rdfs:range bmo:ConfidenceAssessment .
-
-bmo:calibratedProbability a owl:DatatypeProperty ;
-    rdfs:label "calibrated probability"@en ;
-    rdfs:comment "Present only where a calibrated probabilistic model produced it. Absence is meaningful and must never be imputed."@en ;
-    rdfs:domain bmo:ConfidenceAssessment ; rdfs:range xsd:decimal .
-
-bmo:evidenceStrength a owl:ObjectProperty ;
-    rdfs:label "evidence strength"@en ;
-    rdfs:domain bmo:ConfidenceAssessment ; rdfs:range bmo:EvidenceStrengthLevel .
-
-bmo:evidenceCompleteness a owl:ObjectProperty ;
-    rdfs:label "evidence completeness"@en ;
-    rdfs:domain bmo:ConfidenceAssessment ; rdfs:range bmo:EvidenceCompletenessLevel .
-
-bmo:assayApplicability a owl:ObjectProperty ;
-    rdfs:label "assay applicability"@en ;
-    rdfs:comment "Whether the diagnostic procedure is validated for the relevant pathogen, host, and specimen matrix."@en ;
-    rdfs:domain bmo:ConfidenceAssessment ; rdfs:range bmo:ApplicabilityStatus .
-
-bmo:modelApplicability a owl:ObjectProperty ;
-    rdfs:label "model applicability"@en ;
-    rdfs:comment "Whether the sensing or inference model is being applied within the conditions for which its performance is supported."@en ;
-    rdfs:domain bmo:ConfidenceAssessment ; rdfs:range bmo:ApplicabilityStatus .
-
-bmo:provenanceQuality a owl:ObjectProperty ;
-    rdfs:label "provenance quality"@en ;
-    rdfs:domain bmo:ConfidenceAssessment ; rdfs:range bmo:ProvenanceQualityStatus .
-
-# ===========================================================================
-# 7. ASSERTION LAYERS: SENSOR INDICATION -> DIAGNOSTIC DETECTION -> REGULATORY
-# ===========================================================================
-
-bmo:SensorIndicationAssertion a owl:Class ;
-    rdfs:subClassOf up:Assertion ;
-    rdfs:label "Sensor indication assertion"@en ;
-    rdfs:comment "An assertion that sensor evidence warrants further investigation. It does not assert that a pathogen is present and must not be flattened into a diagnostic disposition such as Suspected."@en .
-
-bmo:DiagnosticDetectionAssertion a owl:Class ;
-    rdfs:subClassOf up:Assertion ;
-    rdfs:label "Diagnostic detection assertion"@en ;
-    rdfs:comment "A scientific assertion about whether a specified pathogen is detected at a specified spatial support, derived from diagnostic evidence and carrying provenance, custody, method applicability, and rule version."@en .
-
-bmo:ConfirmedDetectionAssertion a owl:Class ;
-    rdfs:subClassOf bmo:DiagnosticDetectionAssertion ;
-    rdfs:label "Confirmed detection assertion"@en ;
-    rdfs:comment "A diagnostic detection assertion whose disposition is Confirmed and whose evidence has reached the confirmatory stage."@en .
-
-bmo:Detection a owl:Class ;
-    rdfs:subClassOf bmo:DiagnosticDetectionAssertion ;
-    rdfs:label "Detection (legacy term)"@en ;
-    owl:deprecated true ;
-    rdfs:comment "Deprecated compatibility class from v0.2. New data should use DiagnosticDetectionAssertion or ConfirmedDetectionAssertion."@en .
-
-bmo:RegulatoryDetermination a owl:Class ;
-    rdfs:subClassOf up:Assertion ;
-    rdfs:label "Regulatory determination"@en ;
-    rdfs:comment "A determination made by an authorized body under a reporting or regulatory rule. It is deliberately separate from the underlying scientific detection assertion."@en .
-
-bmo:ReportingDecision a owl:Class ;
-    rdfs:subClassOf up:Assertion ;
-    rdfs:label "Reporting decision"@en ;
-    rdfs:comment "A decision about whether and how a scientific assertion is transmitted to an external reporting system or authority."@en .
-
-bmo:Alert a owl:Class ;
-    rdfs:subClassOf obo:IAO_0000033 ;
-    rdfs:label "Alert"@en ;
-    rdfs:comment "A directive or notification issued on the basis of one or more determinations. Alert semantics belong to the policy layer and are not equivalent to diagnostic confidence."@en .
-
-bmo:derivedFromAnomaly a owl:ObjectProperty ;
-    rdfs:subPropertyOf prov:wasDerivedFrom ;
-    rdfs:label "derived from anomaly"@en ;
-    rdfs:domain bmo:SensorIndicationAssertion ; rdfs:range bmo:ObservedAnomaly .
+bmo:derivedFromResult a owl:ObjectProperty ;
+    rdfs:subPropertyOf obo:RO_0001000 ;
+    rdfs:label "derived from result"@en ;
+    rdfs:domain bmo:Detection ; rdfs:range bmo:AssayResult .
 
 bmo:concernsZone a owl:ObjectProperty ;
     rdfs:subPropertyOf obo:IAO_0000136 ;
     rdfs:label "concerns zone"@en ;
-    rdfs:domain up:Assertion ; rdfs:range bmo:Zone .
+    rdfs:comment "What the detection is about. A specialisation of IAO is-about, because a detection is information about a place."@en ;
+    rdfs:domain bmo:Detection ; rdfs:range bmo:Zone .
 
 bmo:assertsPathogen a owl:ObjectProperty ;
     rdfs:label "asserts pathogen"@en ;
-    rdfs:comment "The pathogen taxon asserted in a diagnostic determination. Use an external canonical identifier; Black Mesa does not mint a local pathogen taxonomy."@en ;
-    rdfs:domain bmo:DiagnosticDetectionAssertion ; rdfs:range rdfs:Resource .
+    rdfs:comment "The taxon asserted present, referenced by NCBITaxon IRI. Referenced, never restated: the taxonomy is reference data, not schema. The range is the NCBITaxon root, which states the expectation — values are NCBITaxon IRIs and nothing else — without importing 2.4 million taxa to say so."@en ;
+    rdfs:domain bmo:Detection ; rdfs:range obo:NCBITaxon_1 .
 
-bmo:derivedFromResult a owl:ObjectProperty ;
-    rdfs:subPropertyOf prov:wasDerivedFrom ;
-    rdfs:label "derived from diagnostic result"@en ;
-    rdfs:domain bmo:DiagnosticDetectionAssertion ; rdfs:range bmo:DiagnosticResult .
+bmo:hasTier a owl:ObjectProperty ;
+    rdfs:label "has tier"@en ;
+    rdfs:domain bmo:ConfidenceAssessment ; rdfs:range bmo:ConfidenceTier .
 
-bmo:hasCustodyRecord a owl:ObjectProperty ;
-    rdfs:label "has custody record"@en ;
-    rdfs:comment "Links a diagnostic determination to the record establishing the identity and custody history of the physical evidence on which it relies."@en ;
-    rdfs:domain bmo:DiagnosticDetectionAssertion ; rdfs:range bmo:CustodyRecord .
+bmo:hasCustodyChain a owl:ObjectProperty ;
+    rdfs:label "has custody chain"@en ;
+    rdfs:domain bmo:Detection ; rdfs:range bmo:CustodyChain .
+
+bmo:referencesImagery a owl:ObjectProperty ;
+    rdfs:label "references imagery"@en ;
+    rdfs:comment "Links an anomaly to the imagery it was found in, by reference. The only permitted relation to imagery: no tiling, no per-pixel triples."@en ;
+    rdfs:domain bmo:SpectralAnomaly ; rdfs:range bmo:ImageryReference .
 
 bmo:triggeredAlert a owl:ObjectProperty ;
     rdfs:label "triggered alert"@en ;
-    rdfs:comment "Links a scientific or regulatory assertion to an alert. Alert issuance remains a separate policy decision."@en ;
-    rdfs:domain up:Assertion ; rdfs:range bmo:Alert .
+    rdfs:comment "Detection to alert. At most one, and frequently none."@en ;
+    rdfs:domain bmo:Detection ; rdfs:range bmo:Alert .
 
-# ===========================================================================
-# 8. JURISDICTION AND REPORTING
-# ===========================================================================
+# --- imagery reference payload --------------------------------------------
 
-bmo:OperationalJurisdiction a owl:Class ;
-    rdfs:subClassOf up:ConceptualUnit ;
-    rdfs:label "Operational jurisdiction"@en ;
-    rdfs:comment "A jurisdiction relevant to deployment, reporting, or regulatory evaluation. States are represented as data, not ontology subclasses."@en .
+bmo:storageURI a owl:DatatypeProperty ;
+    rdfs:label "storage URI"@en ;
+    rdfs:domain bmo:ImageryReference ; rdfs:range xsd:anyURI .
+bmo:checksum a owl:DatatypeProperty ;
+    rdfs:label "checksum"@en ;
+    rdfs:comment "Content hash, so the reference can be shown to resolve to the bytes that were analysed."@en ;
+    rdfs:domain bmo:ImageryReference ; rdfs:range xsd:string .
 
-bmo:Arkansas a bmo:OperationalJurisdiction ; rdfs:label "Arkansas"@en ; skos:notation "US-AR" .
-bmo:Louisiana a bmo:OperationalJurisdiction ; rdfs:label "Louisiana"@en ; skos:notation "US-LA" .
-bmo:Missouri a bmo:OperationalJurisdiction ; rdfs:label "Missouri"@en ; skos:notation "US-MO" .
-bmo:Oklahoma a bmo:OperationalJurisdiction ; rdfs:label "Oklahoma"@en ; skos:notation "US-OK" .
-bmo:Texas a bmo:OperationalJurisdiction ; rdfs:label "Texas"@en ; skos:notation "US-TX" .
+# --- confidence axes, mirroring the upper module's contract ---------------
 
-bmo:ReportingRule a owl:Class ;
-    rdfs:subClassOf up:RuleSetVersion ;
-    rdfs:label "Reporting rule"@en ;
-    rdfs:comment "A versioned rule specifying when, to whom, and in what representation a detection or determination should be reported."@en .
-
-bmo:ExternalReportingScheme a owl:Class ;
-    rdfs:subClassOf up:ConceptualUnit ;
-    rdfs:label "External reporting scheme"@en ;
-    rdfs:comment "An external controlled vocabulary, repository, message standard, or reporting scheme to which Black Mesa data may be mapped."@en .
-
-bmo:ExternalReportingTerm a owl:Class ;
-    rdfs:subClassOf up:ConceptualUnit ;
-    rdfs:label "External reporting term"@en ;
-    rdfs:comment "A project-local proxy describing a term in an external reporting scheme when that scheme does not publish a stable RDF identifier. The source URL and notation are mandatory in crosswalk data."@en .
-
-bmo:ReportingCrosswalk a owl:Class ;
-    rdfs:subClassOf up:Crosswalk ;
-    rdfs:label "Reporting crosswalk"@en ;
-    rdfs:comment "A directional, evidence-bearing mapping from an internal concept to an external reporting term or scheme. Fidelity is explicit; NoMapping is a legitimate result."@en .
-
-bmo:appliesInJurisdiction a owl:ObjectProperty ;
-    rdfs:label "applies in jurisdiction"@en ;
-    rdfs:domain up:InformationArtifact ; rdfs:range bmo:OperationalJurisdiction .
-
-bmo:subjectToReportingRule a owl:ObjectProperty ;
-    rdfs:label "subject to reporting rule"@en ;
-    rdfs:domain up:Assertion ; rdfs:range bmo:ReportingRule .
-
-bmo:basedOnDetection a owl:ObjectProperty ;
-    rdfs:label "based on detection"@en ;
-    rdfs:domain bmo:RegulatoryDetermination ; rdfs:range bmo:DiagnosticDetectionAssertion .
-
-bmo:issuedBy a owl:ObjectProperty ;
-    rdfs:label "issued by"@en ;
-    rdfs:domain bmo:RegulatoryDetermination ; rdfs:range prov:Agent .
-
-bmo:targetScheme a owl:ObjectProperty ;
-    rdfs:label "target scheme"@en ;
-    rdfs:domain bmo:ReportingCrosswalk ; rdfs:range bmo:ExternalReportingScheme .
-
-# ===========================================================================
-# 9. PILOT PATHOSYSTEM PROFILES AND REGULATORY-RULE METADATA
-# ===========================================================================
-
-bmo:PilotPathosystem a owl:Class ;
-    rdfs:subClassOf up:InformationArtifact ;
-    rdfs:label "Pilot pathosystem profile"@en ;
-    rdfs:comment "A versionable profile selecting a host/pathogen pair for an operational pilot or regulatory stress test. The host and pathogen are referenced by canonical external taxon IRIs rather than redefined locally."@en .
-
-bmo:PilotScenarioRole a owl:Class ;
-    rdfs:subClassOf up:ConceptualUnit ;
-    rdfs:label "Pilot scenario role"@en ;
-    rdfs:comment "Controlled role describing whether a pathosystem profile is intended for operational evidence-chain testing or primarily for regulatory stress testing."@en .
-
-bmo:OperationalPilot a bmo:PilotScenarioRole ;
-    rdfs:label "operational pilot"@en ;
-    rdfs:comment "A pathosystem selected to exercise the end-to-end sensing, sampling, diagnostic, and evidence workflow."@en .
-
-bmo:RegulatoryStressTest a bmo:PilotScenarioRole ;
-    rdfs:label "regulatory stress test"@en ;
-    rdfs:comment "A pathosystem selected primarily to exercise quarantine, regulatory evaluation, and reporting boundaries."@en .
-
-bmo:hostTaxon a owl:ObjectProperty ;
-    rdfs:label "host taxon"@en ;
-    rdfs:domain bmo:PilotPathosystem ; rdfs:range rdfs:Resource ;
-    rdfs:comment "Canonical external identifier for the crop or host taxon represented by a pilot profile."@en .
-
-bmo:pathogenTaxon a owl:ObjectProperty ;
-    rdfs:label "pathogen taxon"@en ;
-    rdfs:domain bmo:PilotPathosystem ; rdfs:range rdfs:Resource ;
-    rdfs:comment "Canonical external identifier for the pathogen represented by a pilot profile."@en .
-
-bmo:scenarioRole a owl:ObjectProperty ;
-    rdfs:label "scenario role"@en ;
-    rdfs:domain bmo:PilotPathosystem ; rdfs:range bmo:PilotScenarioRole .
-
-bmo:RuleReviewStatus a owl:Class ;
-    rdfs:subClassOf up:ConceptualUnit ;
-    rdfs:label "rule review status"@en ;
-    rdfs:comment "Governance status for a jurisdictional reporting rule. Draft rules are non-operative until reviewed and approved by an authorized legal/regulatory reviewer."@en .
-
-bmo:DraftRequiresLegalRegulatoryReview a bmo:RuleReviewStatus ;
-    rdfs:label "DRAFT — requires legal/regulatory review"@en ;
-    rdfs:comment "The record is an intake scaffold only. It must not be treated as an operative legal rule or used for autonomous external notification."@en .
-
-bmo:ApprovedRule a bmo:RuleReviewStatus ;
-    rdfs:label "approved rule"@en ;
-    rdfs:comment "The record has completed the project's designated legal/regulatory review and may be used by the decision-support layer subject to its effective dates."@en .
-
-bmo:SupersededRule a bmo:RuleReviewStatus ;
-    rdfs:label "superseded rule"@en ;
-    rdfs:comment "The rule record is retained for historical interpretation but is no longer the current operational rule."@en .
-
-bmo:RegulatoryActionType a owl:Class ;
-    rdfs:subClassOf up:ConceptualUnit ;
-    rdfs:label "regulatory action type"@en ;
-    rdfs:comment "Controlled action category used by reviewed reporting rules to describe the kind of follow-up a rule may require."@en .
-
-bmo:InternalInvestigationOnly a bmo:RegulatoryActionType ;
-    rdfs:label "internal investigation only"@en .
-bmo:PathologistReview a bmo:RegulatoryActionType ;
-    rdfs:label "plant pathologist review"@en .
-bmo:RegulatoryEvaluation a bmo:RegulatoryActionType ;
-    rdfs:label "regulatory evaluation"@en .
-bmo:ExternalNotification a bmo:RegulatoryActionType ;
-    rdfs:label "external notification"@en .
-bmo:MovementRestrictionEvaluation a bmo:RegulatoryActionType ;
-    rdfs:label "movement restriction evaluation"@en .
-bmo:QuarantineEvaluation a bmo:RegulatoryActionType ;
-    rdfs:label "quarantine evaluation"@en .
-
-bmo:ruleIdentifier a owl:DatatypeProperty ;
-    rdfs:label "rule identifier"@en ;
-    rdfs:domain bmo:ReportingRule ; rdfs:range xsd:string .
-
-bmo:regulatoryAuthority a owl:ObjectProperty ;
-    rdfs:label "regulatory authority"@en ;
-    rdfs:domain bmo:ReportingRule ; rdfs:range prov:Agent .
-
-bmo:effectiveFrom a owl:DatatypeProperty ;
-    rdfs:label "effective from"@en ;
-    rdfs:domain bmo:ReportingRule ; rdfs:range xsd:date .
-
-bmo:effectiveUntil a owl:DatatypeProperty ;
-    rdfs:label "effective until"@en ;
-    rdfs:domain bmo:ReportingRule ; rdfs:range xsd:date .
-
-bmo:regulatedTaxon a owl:ObjectProperty ;
-    rdfs:label "regulated taxon"@en ;
-    rdfs:domain bmo:ReportingRule ; rdfs:range rdfs:Resource .
-
-bmo:regulatedHost a owl:ObjectProperty ;
-    rdfs:label "regulated host"@en ;
-    rdfs:domain bmo:ReportingRule ; rdfs:range rdfs:Resource .
-
-bmo:regulatedCommodity a owl:ObjectProperty ;
-    rdfs:label "regulated commodity"@en ;
-    rdfs:domain bmo:ReportingRule ; rdfs:range rdfs:Resource .
-
-bmo:regulatedArea a owl:ObjectProperty ;
-    rdfs:label "regulated area"@en ;
-    rdfs:domain bmo:ReportingRule ; rdfs:range rdfs:Resource .
-
-bmo:triggerEvidenceStage a owl:ObjectProperty ;
-    rdfs:label "trigger evidence stage"@en ;
-    rdfs:domain bmo:ReportingRule ; rdfs:range bmo:EvidenceStage .
-
-bmo:triggerDiagnosticDisposition a owl:ObjectProperty ;
-    rdfs:label "trigger diagnostic disposition"@en ;
-    rdfs:domain bmo:ReportingRule ; rdfs:range bmo:DiagnosticDisposition .
-
-bmo:requiredConfirmationMethod a owl:ObjectProperty ;
-    rdfs:label "required confirmation method"@en ;
-    rdfs:domain bmo:ReportingRule ; rdfs:range rdfs:Resource .
-
-bmo:requiresHumanReview a owl:DatatypeProperty ;
-    rdfs:label "requires human review"@en ;
-    rdfs:domain bmo:ReportingRule ; rdfs:range xsd:boolean ;
-    rdfs:comment "Whether a human reviewer must approve the rule application before an external action is taken. Black Mesa Phase 1 policy requires human approval for external regulatory notification."@en .
-
-bmo:requiredAction a owl:ObjectProperty ;
-    rdfs:label "required action"@en ;
-    rdfs:domain bmo:ReportingRule ; rdfs:range bmo:RegulatoryActionType .
-
-bmo:notificationRecipient a owl:ObjectProperty ;
-    rdfs:label "notification recipient"@en ;
-    rdfs:domain bmo:ReportingRule ; rdfs:range prov:Agent .
-
-bmo:notificationDeadline a owl:DatatypeProperty ;
-    rdfs:label "notification deadline"@en ;
-    rdfs:domain bmo:ReportingRule ; rdfs:range xsd:duration .
-
-bmo:movementRestrictionRequired a owl:DatatypeProperty ;
-    rdfs:label "movement restriction required"@en ;
-    rdfs:domain bmo:ReportingRule ; rdfs:range xsd:boolean .
-
-bmo:supersedesRule a owl:ObjectProperty ;
-    rdfs:label "supersedes rule"@en ;
-    rdfs:domain bmo:ReportingRule ; rdfs:range bmo:ReportingRule .
-
-bmo:ruleReviewStatus a owl:ObjectProperty ;
-    rdfs:label "rule review status"@en ;
-    rdfs:domain bmo:ReportingRule ; rdfs:range bmo:RuleReviewStatus .
-
-bmo:legalReviewNote a owl:DatatypeProperty ;
-    rdfs:label "legal review note"@en ;
-    rdfs:domain bmo:ReportingRule ; rdfs:range rdfs:Literal ;
-    rdfs:comment "Human-readable note recording unresolved legal or regulatory interpretation questions. It is not a substitute for source citation or formal review status."@en .
-
-# ===========================================================================
-# 10. COMPATIBILITY ALIASES FROM v0.2
-# ===========================================================================
-
-bmo:ConfidenceTier a owl:Class ;
-    rdfs:subClassOf up:ConceptualUnit ;
-    rdfs:label "Confidence tier (deprecated)"@en ;
-    owl:deprecated true ;
-    rdfs:comment "Deprecated in v0.3. The former single tier conflated evidence stage, diagnostic disposition, and confidence. Use EvidenceStage, DiagnosticDisposition, and ConfidenceAssessment separately."@en .
-
-bmo:PreSymptomatic a bmo:ConfidenceTier ;
-    rdfs:label "Pre-symptomatic indication (deprecated)"@en ;
-    owl:deprecated true ;
-    rdfs:comment "Deprecated compatibility value. New data should use SensorIndicationAssertion with evidence stage SensorIndicationStage."@en .
+bmo:calibratedProbability a owl:DatatypeProperty ;
+    rdfs:label "calibrated probability"@en ;
+    rdfs:comment "Present ONLY where a probabilistic model produced it. Absence is meaningful and must never be imputed."@en ;
+    rdfs:domain bmo:ConfidenceAssessment ; rdfs:range xsd:decimal .
+bmo:evidenceStrength a owl:DatatypeProperty ;
+    rdfs:label "evidence strength"@en ; rdfs:domain bmo:ConfidenceAssessment ; rdfs:range xsd:string .
+bmo:evidenceCompleteness a owl:DatatypeProperty ;
+    rdfs:label "evidence completeness"@en ; rdfs:domain bmo:ConfidenceAssessment ; rdfs:range xsd:string .
+bmo:assayApplicability a owl:DatatypeProperty ;
+    rdfs:label "assay applicability"@en ;
+    rdfs:comment "Whether the assay was validated for this pathogen, host, and matrix. The axis most often omitted and the one that matters most: an assay used outside its validation has no sensitivity figure that applies."@en ;
+    rdfs:domain bmo:ConfidenceAssessment ; rdfs:range xsd:string .
+bmo:provenanceQuality a owl:DatatypeProperty ;
+    rdfs:label "provenance quality"@en ; rdfs:domain bmo:ConfidenceAssessment ; rdfs:range xsd:string .

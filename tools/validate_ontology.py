@@ -43,7 +43,7 @@ from workbench.paths import REPO_ROOT, relative
 #: network keeps validation offline and keeps every run reasoning over the same
 #: hierarchy instead of whatever the remote copy says today.
 LOCAL_IMPORTS = {
-    "https://w3id.org/black-mesa/upper": REPO_ROOT / "upper" / "upper-core.ttl",
+    "https://example.org/upper/": REPO_ROOT / "upper" / "upper-core.ttl",
     "http://purl.obolibrary.org/obo/bfo.owl": REPO_ROOT / "vendor" / "bfo.owl",
 }
 
@@ -150,7 +150,7 @@ def check_anchors(g: rdflib.Graph) -> list[str]:
 
 #: Terms under these namespaces are ours to declare. Anything else is
 #: referenced from a standard and is not expected to be defined here.
-LOCAL_NS = "https://w3id.org/black-mesa/"
+LOCAL_NS = "https://example.org/"
 
 #: Predicates from the standards the schema is written IN rather than terms it
 #: defines. Using rdfs:label does not oblige us to declare rdfs:label.

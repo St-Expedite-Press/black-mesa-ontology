@@ -1,198 +1,61 @@
-# Black Mesa ontology
+# Black Mesa Ontology
 
-Semantic and evidentiary core for the Black Mesa agricultural biosecurity platform.
+Black Mesa Ontology is a Phase 1 conceptual schema for recording a possible
+pre-symptomatic crop-pathogen detection from a flight through sampling, assay,
+and a possible alert. It makes the evidence chain, confidence, and storage
+boundary explicit; it is not a detector, assay implementation, alert service,
+surveillance deployment, or evidence that any pathogen is present.
 
-Black Mesa is designed to move from **sensor observation → anomaly → hypothesis → targeted sampling → legally defensible specimen custody → diagnostic result → scientific determination → reporting or alerting** without collapsing those stages into one opaque "detection" flag.
+The implemented schema contains 20 local classes and 22 local properties in
+`schema/bmo-core.ttl`, with SHACL constraints in `schema/shapes.ttl`. It models
+farms, fields, zones, flights, anomalies, collections, specimens, assays,
+results, detections, confidence, custody, imagery references, and alerts.
+A detection is an assertion about a zone, not a fact stamped on a farm.
 
-The ontology is **sensor-agnostic**. Drone flight and spectral imagery are expected early implementations, but neither is part of the core semantic contract. Thermal systems, fixed stations, ground robots, aircraft, satellite products, or other observation systems should enter through the same evidence model.
+## Status and boundaries
 
-## What this repository is
+Implemented now: the conceptual Turtle schema, BFO anchoring, SHACL shapes,
+deliberate invalid fixtures, ontology validation, and generated references.
+The project references external vocabularies rather than distributing or fully
+importing them. `ReportingCrosswalk` is modeled, but no NPDN or CAP mapping
+entry has been authored. This repository does not demonstrate integration,
+deployment, assay performance, or scientific validation.
 
-This is the documented operational ontology and validation suite for the Phase 1 detection/evidence chain.
+Raw imagery and telemetry are outside the graph. The schema permits a URI and
+checksum reference to imagery; it does not model pixels, tiles, image storage,
+or a data pipeline.
 
-v0.4 design commitments:
+## Start here
 
-- Observation, anomaly, hypothesis, diagnostic determination, regulatory determination, and alert are different objects.
-- A **sensor indication is not a diagnosis** and cannot assert pathogen presence.
-- Diagnostic disposition (`Confirmed`, `Suspected`, `Not Detected`, `Undetermined`) is separate from evidence stage and confidence.
-- Confidence is multi-axis: evidence strength, evidence completeness, applicability, provenance quality, and optional calibrated probability.
-- Sampling creates a persistent specimen identity; aliquots receive their own identities while retaining genealogy.
-- Legally defensible chain of custody is represented as explicit collection, transfer, receipt, storage, and aliquot events.
-- Scientific detection is kept separate from regulatory/reporting decisions.
-- Raw imagery and dense sensor arrays stay outside the RDF graph and are referenced by URI + checksum.
-- Crops, pathogens, sensors, methods, and other reference vocabularies should use external canonical identifiers rather than being reinvented locally.
-- Initial operational jurisdictions are Arkansas, Louisiana, Missouri, Oklahoma, and Texas, represented as data rather than ontology subclasses.
-- Canonical ontology terms now use the persistent `https://w3id.org/black-mesa/` identifier space.
-- Ontology/semantic content is CC BY 4.0; software/tooling is Apache-2.0.
-- Four initial pathosystem profiles are now instantiated as reference data: rice blast, soybean frogeye leaf spot, wheat stripe rust, and Karnal bunt as a regulatory stress test.
-- Five state regulatory-rule intake records exist as non-operative drafts requiring legal/regulatory review and human approval.
+- [Documentation index](docs/index.md)
+- [Getting started](docs/getting-started/overview.md)
+- [Ontology overview](docs/ontology/overview.md)
+- [Known limitations](docs/methodology/validation-and-limitations.md)
+- [Generated schema reference](docs/reference/schema-reference.md)
 
-## Read this first
+## Validate
 
-If you are not an ontology engineer:
+In the canonical monorepo:
 
-1. [Team guide](docs/team-guide.md) — what RDF, OWL, SHACL, BFO, SOSA, provenance, custody, confidence, and crosswalks mean in plain language.
-2. [Architecture](docs/architecture.md) — how the Black Mesa product is represented end to end, with workflow diagrams.
-3. [Canonical workflow](examples/canonical-workflow.ttl) — a worked survey-to-confirmed-detection record.
-4. [Negative survey](examples/negative-survey.ttl) — why "surveyed with no anomaly" is not the same thing as "pathogen not detected."
-5. [Pilot pathosystems](reference/pilot-pathosystems.ttl) — the initial crop/pathogen profiles.
-6. [Rule registry guide](rules/README.md) — how state rule records are governed and why drafts cannot authorize external action.
-7. [Persistent identifier policy](docs/persistence.md) — canonical IRIs and W3ID registration requirements.
+```powershell
+.venv\Scripts\python.exe tools\validate_ontology.py projects\black-mesa-ontology\schema\bmo-core.ttl projects\black-mesa-ontology\schema\shapes.ttl --shapes projects\black-mesa-ontology\schema\shapes.ttl
+.venv\Scripts\python.exe tools\check_docs.py --project black-mesa-ontology
+.venv\Scripts\python.exe -m pytest tests\test_detection_shacl.py tests\test_docs_rebuild.py -q
+```
 
-For ontology work:
+In the flattened public layout:
 
-- [Domain schema](schema/bmo-core.ttl)
-- [Reporting crosswalks](schema/reporting-crosswalks.ttl)
-- [SHACL constraints](schema/shapes.ttl)
-- [Schema reference](docs/schema-reference.md)
-- [Class diagram](docs/class-diagram.md)
-- [v0.4 design note](docs/detection-ontology-v0.4.md)
+```powershell
+python tools\validate_ontology.py schema\bmo-core.ttl schema\shapes.ttl --shapes schema\shapes.ttl
+python tools\check_docs.py --project black-mesa-ontology
+python -m pytest tests\ -q
+```
 
-## The workflow in one picture
+The canonical monorepo is authoritative. A public repository is an assembly
+created with `tools/publish_repo.py`; do not edit it as a durable source.
 
-~~~mermaid
-flowchart LR
-    A[Survey activity] --> B[Sensor observation]
-    B --> C[Observed anomaly]
-    C --> D[Sensor indication]
-    D --> E[Diagnostic hypotheses]
-    E --> F[Next-best observation or sampling]
-    F --> G[Specimen + custody record]
-    G --> H[Diagnostic procedure]
-    H --> I[Diagnostic result]
-    I --> J[Scientific detection assertion]
-    J --> K[Reporting / regulatory evaluation]
-    K --> L[Alert or notification]
+## License and maturity
 
-    C -. does not equal .-> J
-    J -. does not equal .-> K
-    K -. does not equal .-> L
-~~~
-
-## Why the distinctions matter
-
-A sensor may identify an abnormal crop signature without knowing its cause. That should trigger investigation, not silently become a pathogen record.
-
-A laboratory result may be negative without proving that a pathogen is absent from an entire field.
-
-A scientifically confirmed detection may not by itself determine whether an agency must be notified, because reporting rules are jurisdictional and versioned.
-
-A specimen without a continuous identity and custody history may be scientifically interesting but inadequate for a regulatory action.
-
-The ontology exists to keep these distinctions machine-readable.
-
-## External standards and vocabularies
-
-| Standard | Role |
-|---|---|
-| BFO 2.0 | upper-level categories: information, process, material, site, quality, role |
-| IAO / RO | information artifacts and core relations |
-| SOSA/SSN | sensors, platforms, observation semantics |
-| PROV-O | provenance, derivation, agents, assertion time |
-| GeoSPARQL | geometry and spatial relationships |
-| QUDT | quantitative values and units when measurement modules are added |
-| OBI | selected assay/specimen concepts |
-| NCBITaxon and other authorities | external organism identifiers |
-| NPDN NDR | diagnostic reporting dispositions and downstream interoperability |
-| OASIS CAP 1.2 | alert-message semantics; not treated as diagnostic confidence |
-
-The NPDN diagnostic vocabulary uses Confirmed, Suspected, Not Detected, and Undetermined. Black Mesa maps its **diagnostic dispositions** to those values while explicitly refusing to map a sensor-only indication into them.
-
-CAP certainty is intentionally not treated as equivalent to diagnostic disposition. CAP describes the subject event of an alert; translation belongs in an explicit reporting rule.
-
-## Repository layout
-
-~~~text
-schema/
-    bmo-core.ttl
-    reporting-crosswalks.ttl
-    shapes.ttl
-
-upper/
-    upper-core.ttl
-
-vendor/
-    bfo.owl
-
-examples/
-    canonical-workflow.ttl
-    negative-survey.ttl
-
-reference/
-    pilot-pathosystems.ttl
-
-rules/
-    README.md
-    US-AR/draft-rules.ttl
-    US-LA/draft-rules.ttl
-    US-MO/draft-rules.ttl
-    US-OK/draft-rules.ttl
-    US-TX/draft-rules.ttl
-
-tests/
-    fixtures/bmo-violations.ttl
-    test_detection_shacl.py
-    test_anchoring.py
-
-tools/
-    validate_ontology.py
-    visualize_ontology.py
-    schema_docs.py
-
-docs/
-    team-guide.md
-    architecture.md
-    persistence.md
-    detection-ontology-v0.4.md
-    schema-reference.md
-    class-diagram.md
-~~~
-
-## Validate it
-
-~~~bash
-pip install -r requirements.txt
-
-python tools/validate_ontology.py \
-  schema/bmo-core.ttl \
-  schema/reporting-crosswalks.ttl \
-  --shapes schema/shapes.ttl
-
-python -m pytest tests/ -q
-~~~
-
-Regenerate structural documentation after schema changes:
-
-~~~bash
-python tools/schema_docs.py --schema schema --out docs
-~~~
-
-## Current scope
-
-Phase 1 is the **evidence chain**, not an exhaustive crop/pathogen taxonomy and not a regulatory rules engine.
-
-The first deployment region is the Arkansas–Louisiana–Missouri–Oklahoma–Texas cluster. The core schema must remain portable beyond it.
-
-Near-term work after v0.4:
-
-- run the four pilot pathosystems against real sensor, field, and diagnostic workflows;
-- define actual sensor/model records once hardware and models are selected;
-- add validated diagnostic method profiles;
-- complete legal/regulatory review of the five draft state rule intakes before any rule is promoted to `ApprovedRule`;
-- add environmental context and spread inference without contaminating the core evidence model.
-
-## Persistent namespace and licensing
-
-Canonical ontology IRI: `https://w3id.org/black-mesa/bmo`
-
-Canonical term namespace: `https://w3id.org/black-mesa/bmo/`
-
-Version IRI: `https://w3id.org/black-mesa/bmo/releases/0.4.0`
-
-The W3ID redirect itself still needs to be registered before these identifiers are operationally dereferenceable; see [docs/persistence.md](docs/persistence.md).
-
-Semantic content is licensed under CC BY 4.0. Executable software/tooling is licensed under Apache-2.0. See [LICENSE](LICENSE).
-
-## Publishing note
-
-This public repository has historically been assembled from a source monorepo. A generated publish can overwrite direct edits here. Any accepted changes therefore need to be carried back into the source-of-truth publishing workspace before the next automated publish.
+No reuse license is currently committed for this project. Reuse rights and
+third-party notices are therefore not established by this repository. This is
+an early conceptual artifact, not a validated scientific or production system.

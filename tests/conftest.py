@@ -22,6 +22,14 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "src"))
 sys.path.insert(0, str(ROOT / "tools"))
 
+# Project-local packages, discovered the same way and for the same reason as
+# present_projects() below: this file travels into a repository that may not
+# name a project. In a published repository projects/ is absent and the single
+# project's package is already under the src/ added above.
+for _p in sorted((ROOT / "projects").iterdir()) if (ROOT / "projects").is_dir() else []:
+    if (_p / "src").is_dir():
+        sys.path.insert(0, str(_p / "src"))
+
 from workbench.paths import PROJECTS_DIR, REPO_ROOT, project_id  # noqa: E402
 from validate_ontology import resolve_imports  # noqa: E402
 

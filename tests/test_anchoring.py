@@ -65,7 +65,7 @@ def test_every_bfo_anchor_target_exists_in_bfo(project: str, directory: Path):
 def test_a_bogus_bfo_anchor_is_caught(project: str, directory: Path):
     """The adversarial half: plant an anchor that looks right and is not."""
     g = schema_graph(directory)
-    g.add((rdflib.URIRef("https://w3id.org/black-mesa/upper/Invented"),
+    g.add((rdflib.URIRef("https://example.org/upper/Invented"),
            rdflib.RDFS.subClassOf,
            rdflib.URIRef(BFO_PREFIX + "0000301")))
     issues = check_anchors(g)
